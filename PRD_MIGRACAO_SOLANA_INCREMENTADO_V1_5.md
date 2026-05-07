@@ -2874,35 +2874,35 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Implementar `initialize_protocol`.
-- [ ] Implementar `register_property`.
-- [ ] Implementar `mock_verify_property`.
-- [ ] Validar hashes `[u8; 32]` não zerados.
-- [ ] Validar `market_value_lamports > 0`.
-- [ ] Validar `linked_value_bps > 0 && < 10_000`.
-- [ ] Calcular unidades com checked arithmetic.
-- [ ] Atualizar status.
-- [ ] Emitir eventos Anchor.
+- [x] Implementar `initialize_protocol`.
+- [x] Implementar `register_property`.
+- [x] Implementar `mock_verify_property`.
+- [x] Validar hashes `[u8; 32]` não zerados.
+- [x] Validar `market_value_lamports > 0`.
+- [x] Validar `linked_value_bps > 0 && < 10_000`.
+- [x] Calcular unidades com checked arithmetic.
+- [x] Atualizar status.
+- [x] Emitir eventos Anchor.
 
 ### Critérios de aprovação
 
-- [ ] Pessoa A registra imóvel em Devnet.
-- [ ] Property PDA guarda hashes e parâmetros.
-- [ ] Status inicial é `PendingMockVerification`.
-- [ ] Owner ou mock verifier aprova documentação.
-- [ ] Status vira `MockVerified`.
+- [x] Pessoa A registra imóvel em Devnet.
+- [x] Property PDA guarda hashes e parâmetros.
+- [x] Status inicial é `PendingMockVerification`.
+- [x] Owner ou mock verifier aprova documentação.
+- [x] Status vira `MockVerified`.
 
 ### Testes
 
-- [ ] Registro válido.
-- [ ] Valor zero reverte.
-- [ ] BPS inválido reverte.
-- [ ] Hash zero reverte.
-- [ ] Verificação por owner funciona.
-- [ ] Verificação por mock verifier funciona.
-- [ ] Verificação por conta não autorizada reverte.
-- [ ] Conta `PropertyAccount` falsa reverte.
-- [ ] `ProtocolState` falso reverte.
+- [x] Registro válido.
+- [x] Valor zero reverte.
+- [x] BPS inválido reverte.
+- [x] Hash zero reverte.
+- [x] Verificação por owner funciona.
+- [x] Verificação por mock verifier funciona.
+- [x] Verificação por conta não autorizada reverte.
+- [x] Conta `PropertyAccount` falsa reverte.
+- [x] `ProtocolState` falso reverte.
 
 ---
 
@@ -2912,43 +2912,43 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Implementar `tokenize_property`.
-- [ ] Criar `UsufructPosition` PDA.
-- [ ] Criar mint SPL com `decimals = 0`.
-- [ ] Usar `ValueMintAuthority` PDA.
-- [ ] Mintar `free_value_units` para ATA do owner.
-- [ ] Salvar `value_mint` na propriedade.
-- [ ] Criar `UsufructPosition.active = true` e manter inalterado na Fase 0.
-- [ ] Bloquear tokenização duplicada.
-- [ ] Remover mint authority após mint inicial.
-- [ ] Criar mint sem freeze authority.
-- [ ] Validar `token_program == spl_token::ID`.
-- [ ] Validar `associated_token_program == associated_token::ID`.
+- [x] Implementar `tokenize_property`.
+- [x] Criar `UsufructPosition` PDA.
+- [x] Criar mint SPL com `decimals = 0`.
+- [x] Usar `ValueMintAuthority` PDA.
+- [x] Mintar `free_value_units` para ATA do owner.
+- [x] Salvar `value_mint` na propriedade.
+- [x] Criar `UsufructPosition.active = true` e manter inalterado na Fase 0.
+- [x] Bloquear tokenização duplicada.
+- [x] Remover mint authority após mint inicial.
+- [x] Criar mint sem freeze authority.
+- [x] Validar `token_program == spl_token::ID`.
+- [x] Validar `associated_token_program == associated_token::ID`.
 
 ### Critérios de aprovação
 
-- [ ] Pessoa A tokeniza imóvel mock verified.
-- [ ] Owner recebe `free_value_units`.
-- [ ] UsufructPosition mostra `linked_value_units`.
-- [ ] Mint usa `decimals = 0`.
-- [ ] Property status vira `Tokenized`.
+- [x] Pessoa A tokeniza imóvel mock verified.
+- [x] Owner recebe `free_value_units`.
+- [x] UsufructPosition mostra `linked_value_units`.
+- [x] Mint usa `decimals = 0`.
+- [x] Property status vira `Tokenized`.
 
 ### Testes
 
-- [ ] Tokenização válida.
-- [ ] Tokenização antes da mock verification reverte.
-- [ ] Tokenização duplicada reverte.
-- [ ] Mint falso reverte.
-- [ ] ATA falsa do owner reverte.
-- [ ] Decimals diferente de 0 reverte.
-- [ ] Mint authority falsa reverte.
-- [ ] Mint authority remanescente após tokenização falha no teste.
-- [ ] Freeze authority configurada falha no teste.
-- [ ] Token-2022/token program incorreto reverte.
-- [ ] Associated Token Program falso reverte.
-- [ ] `UsufructPosition.active` nasce `true` e permanece `true`.
-- [ ] Rollback preserva estado se CPI pós-atualização falhar.
-- [ ] Mint adicional não autorizado reverte.
+- [x] Tokenização válida.
+- [x] Tokenização antes da mock verification reverte.
+- [x] Tokenização duplicada reverte.
+- [x] Mint falso reverte.
+- [x] ATA falsa do owner reverte.
+- [x] Decimals diferente de 0 reverte.
+- [x] Mint authority falsa reverte.
+- [x] Mint authority remanescente após tokenização falha no teste.
+- [x] Freeze authority configurada falha no teste.
+- [x] Token-2022/token program incorreto reverte.
+- [x] Associated Token Program falso reverte.
+- [x] `UsufructPosition.active` nasce `true` e permanece `true`.
+- [x] Rollback preserva estado se CPI pós-atualização falhar.
+- [x] Mint adicional não autorizado reverte.
 
 ---
 
@@ -2958,43 +2958,43 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Implementar `create_primary_sale_listing`.
-- [ ] Validar owner signer.
-- [ ] Validar propriedade `Tokenized` ou `ActiveSale`.
-- [ ] Calcular `price_lamports` com checked arithmetic.
-- [ ] Validar `price_lamports > 0`.
-- [ ] Criar `ListingAccount`.
-- [ ] Criar/validar `EscrowAuthority` PDA.
-- [ ] Criar/validar escrow token account como ATA da EscrowAuthority PDA.
-- [ ] Seller/owner paga criação da escrow ATA.
-- [ ] Transferir tokens com `transfer_checked`.
-- [ ] Atualizar contadores.
-- [ ] Permitir múltiplas listings enquanto houver saldo livre suficiente.
+- [x] Implementar `create_primary_sale_listing`.
+- [x] Validar owner signer.
+- [x] Validar propriedade `Tokenized` ou `ActiveSale`.
+- [x] Calcular `price_lamports` com checked arithmetic.
+- [x] Validar `price_lamports > 0`.
+- [x] Criar `ListingAccount`.
+- [x] Criar/validar `EscrowAuthority` PDA.
+- [x] Criar/validar escrow token account como ATA da EscrowAuthority PDA.
+- [x] Seller/owner paga criação da escrow ATA.
+- [x] Transferir tokens com `transfer_checked`.
+- [x] Atualizar contadores.
+- [x] Permitir múltiplas listings enquanto houver saldo livre suficiente.
 
 ### Critérios de aprovação
 
-- [ ] Pessoa A cria listing de 300.000 unidades.
-- [ ] Preço é calculado proporcionalmente.
-- [ ] Tokens saem da ATA do owner e entram no escrow.
-- [ ] Property status vira `ActiveSale`.
-- [ ] Marketplace lista a oferta.
+- [x] Pessoa A cria listing de 300.000 unidades.
+- [x] Preço é calculado proporcionalmente.
+- [x] Tokens saem da ATA do owner e entram no escrow.
+- [x] Property status vira `ActiveSale`.
+- [x] Marketplace lista a oferta.
 
 ### Testes
 
-- [ ] Listing válida.
-- [ ] Amount zero reverte.
-- [ ] Saldo insuficiente reverte.
-- [ ] Seller falso reverte.
-- [ ] Owner token account falsa reverte.
-- [ ] Mint falso reverte.
-- [ ] Escrow authority falsa reverte.
-- [ ] Escrow token account falsa reverte.
-- [ ] Propriedade não tokenizada reverte.
-- [ ] Preço zero reverte.
-- [ ] Múltiplas listings ativas funcionam enquanto houver saldo livre suficiente.
-- [ ] Listing com saldo insuficiente reverte com `InsufficientFreeValueBalance`.
-- [ ] Token-2022/token program incorreto reverte.
-- [ ] Associated Token Program falso reverte.
+- [x] Listing válida.
+- [x] Amount zero reverte.
+- [x] Saldo insuficiente reverte.
+- [x] Seller falso reverte.
+- [x] Owner token account falsa reverte.
+- [x] Mint falso reverte.
+- [x] Escrow authority falsa reverte.
+- [x] Escrow token account falsa reverte.
+- [x] Propriedade não tokenizada reverte.
+- [x] Preço zero reverte.
+- [x] Múltiplas listings ativas funcionam enquanto houver saldo livre suficiente.
+- [x] Listing com saldo insuficiente reverte com `InsufficientFreeValueBalance`.
+- [x] Token-2022/token program incorreto reverte.
+- [x] Associated Token Program falso reverte.
 
 ---
 
@@ -3004,47 +3004,47 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Implementar `buy_primary_sale_listing`.
-- [ ] Validar listing ativa.
-- [ ] Validar buyer diferente do seller.
-- [ ] Validar `expected_amount`.
-- [ ] Validar `expected_price_lamports`.
-- [ ] Transferir SOL do buyer para seller.
-- [ ] UI cria ATA do buyer antes da instrução, com rent pago pelo buyer; programa apenas valida ATA canônica.
-- [ ] Transferir tokens do escrow para buyer com `transfer_checked`.
-- [ ] Atualizar listing para `Filled`.
-- [ ] Atualizar contadores da propriedade.
-- [ ] Atualizar status para `Tokenized`, `ActiveSale` ou `SoldOut`.
-- [ ] Fechar escrow token account quando saldo zerar.
-- [ ] Enviar rent para seller.
-- [ ] Manter `ListingAccount` aberta com status final.
+- [x] Implementar `buy_primary_sale_listing`.
+- [x] Validar listing ativa.
+- [x] Validar buyer diferente do seller.
+- [x] Validar `expected_amount`.
+- [x] Validar `expected_price_lamports`.
+- [x] Transferir SOL do buyer para seller.
+- [x] UI cria ATA do buyer antes da instrução, com rent pago pelo buyer; programa apenas valida ATA canônica.
+- [x] Transferir tokens do escrow para buyer com `transfer_checked`.
+- [x] Atualizar listing para `Filled`.
+- [x] Atualizar contadores da propriedade.
+- [x] Atualizar status para `Tokenized`, `ActiveSale` ou `SoldOut`.
+- [x] Fechar escrow token account quando saldo zerar.
+- [x] Enviar rent para seller.
+- [x] Manter `ListingAccount` aberta com status final.
 
 ### Critérios de aprovação
 
-- [ ] Pessoa B compra listing pagando preço exato em SOL.
-- [ ] Pessoa A recebe SOL.
-- [ ] Pessoa B recebe SPL tokens livres.
-- [ ] Listing vira `Filled`.
-- [ ] Escrow é fechado e rent vai para seller.
-- [ ] Dashboard mostra distribuição 70/30 no exemplo-base.
+- [x] Pessoa B compra listing pagando preço exato em SOL.
+- [x] Pessoa A recebe SOL.
+- [x] Pessoa B recebe SPL tokens livres.
+- [x] Listing vira `Filled`.
+- [x] Escrow é fechado e rent vai para seller.
+- [x] Dashboard mostra distribuição 70/30 no exemplo-base.
 
 ### Testes
 
-- [ ] Compra válida.
-- [ ] Buyer igual seller reverte.
-- [ ] `expected_price_lamports` incorreto reverte.
-- [ ] `expected_amount` incorreto reverte.
-- [ ] Listing preenchida não pode ser comprada.
-- [ ] Buyer ATA falsa reverte.
-- [ ] Buyer sem ATA não consegue comprar até a UI criar a ATA antes da instrução.
-- [ ] Compra funciona após UI criar a ATA do buyer e buyer pagar o rent.
-- [ ] Mint falso reverte.
-- [ ] Seller falso reverte.
-- [ ] Escrow token account falsa reverte.
-- [ ] Escrow authority falsa reverte.
-- [ ] Property falsa reverte.
-- [ ] Rent retorna ao seller.
-- [ ] `SoldOut` é calculado corretamente.
+- [x] Compra válida.
+- [x] Buyer igual seller reverte.
+- [x] `expected_price_lamports` incorreto reverte.
+- [x] `expected_amount` incorreto reverte.
+- [x] Listing preenchida não pode ser comprada.
+- [x] Buyer ATA falsa reverte.
+- [x] Buyer sem ATA não consegue comprar até a UI criar a ATA antes da instrução.
+- [x] Compra funciona após UI criar a ATA do buyer e buyer pagar o rent.
+- [x] Mint falso reverte.
+- [x] Seller falso reverte.
+- [x] Escrow token account falsa reverte.
+- [x] Escrow authority falsa reverte.
+- [x] Property falsa reverte.
+- [x] Rent retorna ao seller.
+- [x] `SoldOut` é calculado corretamente.
 
 ---
 

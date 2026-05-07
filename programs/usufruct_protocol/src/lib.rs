@@ -1,4 +1,10 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program_option::COption;
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token::{
+    self, CloseAccount, Mint, MintTo, SetAuthority, Token, TokenAccount, TransferChecked,
+};
+use anchor_spl::token::spl_token::instruction::AuthorityType;
 
 declare_id!("7L4m3nKBzAprH6L18nXHngA1djPAmYYt1XZVu7RqW8V1");
 
@@ -136,6 +142,548 @@ pub mod usufruct_protocol {
 
         Ok(())
     }
+
+    pub fn tokenize_property(ctx: Context<TokenizeProperty>) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.token_program.key(),
+            anchor_spl::token::ID,
+            ErrorCode::InvalidTokenProgram
+        );
+        require_keys_eq!(
+            ctx.accounts.associated_token_program.key(),
+            anchor_spl::associated_token::ID,
+            ErrorCode::InvalidAssociatedTokenProgram
+        );
+
+        let property = &mut ctx.accounts.property;
+        require!(
+            property.status == PropertyStatus::MockVerified,
+            ErrorCode::PropertyNotMockVerified
+        );
+        require!(
+            property.value_mint == Pubkey::default()
+                && property.usufruct_position == Pubkey::default(),
+            ErrorCode::PropertyAlreadyTokenized
+        );
+        require!(
+            property.total_value_units == TOTAL_VALUE_UNITS
+                && property
+                    .linked_value_units
+                    .checked_add(property.free_value_units)
+                    .ok_or(ErrorCode::MathOverflow)?
+                    == property.total_value_units,
+            ErrorCode::InvalidTotalUnits
+        );
+        require!(ctx.accounts.value_mint.decimals == 0, ErrorCode::InvalidDecimals);
+        require!(
+            ctx.accounts.value_mint.mint_authority == COption::Some(ctx.accounts.value_mint_authority.key()),
+            ErrorCode::InvalidMintAuthority
+        );
+        require!(
+            ctx.accounts.value_mint.freeze_authority == COption::None,
+            ErrorCode::InvalidMintAuthority
+        );
+
+        let property_key = property.key();
+        let authority_bump = ctx.bumps.value_mint_authority;
+        let authority_seeds: &[&[u8]] = &[
+            VALUE_MINT_AUTHORITY_SEED,
+            property_key.as_ref(),
+            &[authority_bump],
+        ];
+        let signer_seeds = &[authority_seeds];
+
+        token::mint_to(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                MintTo {
+                    mint: ctx.accounts.value_mint.to_account_info(),
+                    to: ctx.accounts.owner_token_account.to_account_info(),
+                    authority: ctx.accounts.value_mint_authority.to_account_info(),
+                },
+                signer_seeds,
+            ),
+            property.free_value_units,
+        )?;
+
+        token::set_authority(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                SetAuthority {
+                    account_or_mint: ctx.accounts.value_mint.to_account_info(),
+                    current_authority: ctx.accounts.value_mint_authority.to_account_info(),
+                },
+                signer_seeds,
+            ),
+            AuthorityType::MintTokens,
+            None,
+        )?;
+
+        let usufruct_position = &mut ctx.accounts.usufruct_position;
+        usufruct_position.property = property_key;
+        usufruct_position.property_id = property.property_id;
+        usufruct_position.holder = ctx.accounts.owner.key();
+        usufruct_position.linked_value_units = property.linked_value_units;
+        usufruct_position.linked_value_bps = property.linked_value_bps;
+        usufruct_position.active = true;
+        usufruct_position.bump = ctx.bumps.usufruct_position;
+        usufruct_position.reserved = [0; 32];
+
+        let old_status = property.status;
+        property.value_mint = ctx.accounts.value_mint.key();
+        property.usufruct_position = usufruct_position.key();
+        property.status = PropertyStatus::Tokenized;
+
+        emit!(PropertyTokenized {
+            property: property_key,
+            property_id: property.property_id,
+            owner: property.owner,
+            value_mint: property.value_mint,
+            usufruct_position: property.usufruct_position,
+            linked_value_units: property.linked_value_units,
+            free_value_units: property.free_value_units,
+        });
+        emit!(PropertyStatusUpdated {
+            property: property_key,
+            property_id: property.property_id,
+            old_status,
+            new_status: property.status,
+        });
+
+        Ok(())
+    }
+
+    pub fn create_primary_sale_listing(
+        ctx: Context<CreatePrimarySaleListing>,
+        amount: u64,
+    ) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.token_program.key(),
+            anchor_spl::token::ID,
+            ErrorCode::InvalidTokenProgram
+        );
+        require_keys_eq!(
+            ctx.accounts.associated_token_program.key(),
+            anchor_spl::associated_token::ID,
+            ErrorCode::InvalidAssociatedTokenProgram
+        );
+        require!(amount > 0, ErrorCode::InvalidAmount);
+
+        let property = &mut ctx.accounts.property;
+        require!(
+            property.status == PropertyStatus::Tokenized
+                || property.status == PropertyStatus::ActiveSale,
+            ErrorCode::PropertyNotTokenized
+        );
+        require_keys_eq!(
+            ctx.accounts.value_mint.key(),
+            property.value_mint,
+            ErrorCode::InvalidMint
+        );
+        require!(
+            ctx.accounts.value_mint.decimals == 0,
+            ErrorCode::InvalidDecimals
+        );
+        require_keys_eq!(
+            ctx.accounts.owner_token_account.mint,
+            property.value_mint,
+            ErrorCode::InvalidOwnerTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.owner_token_account.owner,
+            ctx.accounts.owner.key(),
+            ErrorCode::InvalidOwnerTokenAccount
+        );
+        require!(
+            ctx.accounts.owner_token_account.amount >= amount,
+            ErrorCode::InsufficientFreeValueBalance
+        );
+
+        let available_free_value = property
+            .free_value_units
+            .checked_sub(property.total_free_value_sold)
+            .ok_or(ErrorCode::MathUnderflow)?
+            .checked_sub(property.active_escrowed_amount)
+            .ok_or(ErrorCode::MathUnderflow)?;
+        require!(
+            amount <= available_free_value,
+            ErrorCode::InsufficientFreeValueBalance
+        );
+
+        let price_lamports = property
+            .market_value_lamports
+            .checked_mul(amount)
+            .ok_or(ErrorCode::MathOverflow)?
+            .checked_div(property.total_value_units)
+            .ok_or(ErrorCode::DivisionByZero)?;
+        require!(price_lamports > 0, ErrorCode::PriceZero);
+
+        token::transfer_checked(
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                TransferChecked {
+                    from: ctx.accounts.owner_token_account.to_account_info(),
+                    mint: ctx.accounts.value_mint.to_account_info(),
+                    to: ctx.accounts.escrow_token_account.to_account_info(),
+                    authority: ctx.accounts.owner.to_account_info(),
+                },
+            ),
+            amount,
+            ctx.accounts.value_mint.decimals,
+        )?;
+
+        let protocol_state = &mut ctx.accounts.protocol_state;
+        let listing = &mut ctx.accounts.listing;
+        let listing_id = protocol_state.next_listing_id;
+        listing.listing_id = listing_id;
+        listing.property = property.key();
+        listing.property_id = property.property_id;
+        listing.seller = ctx.accounts.owner.key();
+        listing.value_mint = property.value_mint;
+        listing.seller_token_account = ctx.accounts.owner_token_account.key();
+        listing.escrow_token_account = ctx.accounts.escrow_token_account.key();
+        listing.escrow_authority = ctx.accounts.escrow_authority.key();
+        listing.amount = amount;
+        listing.price_lamports = price_lamports;
+        listing.status = SaleStatus::Active;
+        listing.bump = ctx.bumps.listing;
+        listing.reserved = [0; 32];
+
+        protocol_state.next_listing_id = protocol_state
+            .next_listing_id
+            .checked_add(1)
+            .ok_or(ErrorCode::MathOverflow)?;
+
+        let old_status = property.status;
+        property.active_listings_count = property
+            .active_listings_count
+            .checked_add(1)
+            .ok_or(ErrorCode::MathOverflow)?;
+        property.active_escrowed_amount = property
+            .active_escrowed_amount
+            .checked_add(amount)
+            .ok_or(ErrorCode::MathOverflow)?;
+        property.status = PropertyStatus::ActiveSale;
+
+        emit!(PrimarySaleListed {
+            listing: listing.key(),
+            listing_id,
+            property: property.key(),
+            property_id: property.property_id,
+            seller: listing.seller,
+            value_mint: listing.value_mint,
+            escrow_token_account: listing.escrow_token_account,
+            amount,
+            price_lamports,
+        });
+        emit!(PropertyStatusUpdated {
+            property: property.key(),
+            property_id: property.property_id,
+            old_status,
+            new_status: property.status,
+        });
+
+        Ok(())
+    }
+
+    pub fn buy_primary_sale_listing(
+        ctx: Context<BuyPrimarySaleListing>,
+        expected_amount: u64,
+        expected_price_lamports: u64,
+    ) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.token_program.key(),
+            anchor_spl::token::ID,
+            ErrorCode::InvalidTokenProgram
+        );
+        require_keys_eq!(
+            ctx.accounts.associated_token_program.key(),
+            anchor_spl::associated_token::ID,
+            ErrorCode::InvalidAssociatedTokenProgram
+        );
+
+        let listing = &mut ctx.accounts.listing;
+        let property = &mut ctx.accounts.property;
+        require!(listing.status == SaleStatus::Active, ErrorCode::ListingNotActive);
+        require_keys_neq!(
+            ctx.accounts.buyer.key(),
+            ctx.accounts.seller.key(),
+            ErrorCode::BuyerCannotBeSeller
+        );
+        require!(
+            expected_amount == listing.amount,
+            ErrorCode::UnexpectedAmount
+        );
+        require!(
+            expected_price_lamports == listing.price_lamports,
+            ErrorCode::UnexpectedPrice
+        );
+        require_keys_eq!(
+            ctx.accounts.value_mint.key(),
+            listing.value_mint,
+            ErrorCode::InvalidMint
+        );
+        require_keys_eq!(
+            ctx.accounts.value_mint.key(),
+            property.value_mint,
+            ErrorCode::InvalidMint
+        );
+        require!(
+            ctx.accounts.value_mint.decimals == 0,
+            ErrorCode::InvalidDecimals
+        );
+        require_keys_eq!(
+            ctx.accounts.escrow_token_account.key(),
+            listing.escrow_token_account,
+            ErrorCode::InvalidEscrowTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.escrow_token_account.owner,
+            listing.escrow_authority,
+            ErrorCode::InvalidEscrowTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.escrow_token_account.mint,
+            listing.value_mint,
+            ErrorCode::InvalidEscrowTokenAccount
+        );
+        require!(
+            ctx.accounts.escrow_token_account.amount >= listing.amount,
+            ErrorCode::InsufficientFreeValueBalance
+        );
+        require_keys_eq!(
+            ctx.accounts.buyer_token_account.owner,
+            ctx.accounts.buyer.key(),
+            ErrorCode::InvalidBuyerTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.buyer_token_account.mint,
+            listing.value_mint,
+            ErrorCode::InvalidBuyerTokenAccount
+        );
+
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.buyer.to_account_info(),
+                    to: ctx.accounts.seller.to_account_info(),
+                },
+            ),
+            listing.price_lamports,
+        )?;
+
+        let listing_key = listing.key();
+        let escrow_bump = ctx.bumps.escrow_authority;
+        let escrow_seeds: &[&[u8]] = &[
+            ESCROW_AUTHORITY_SEED,
+            listing_key.as_ref(),
+            &[escrow_bump],
+        ];
+        let signer_seeds = &[escrow_seeds];
+
+        token::transfer_checked(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                TransferChecked {
+                    from: ctx.accounts.escrow_token_account.to_account_info(),
+                    mint: ctx.accounts.value_mint.to_account_info(),
+                    to: ctx.accounts.buyer_token_account.to_account_info(),
+                    authority: ctx.accounts.escrow_authority.to_account_info(),
+                },
+                signer_seeds,
+            ),
+            listing.amount,
+            ctx.accounts.value_mint.decimals,
+        )?;
+
+        token::close_account(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            CloseAccount {
+                account: ctx.accounts.escrow_token_account.to_account_info(),
+                destination: ctx.accounts.seller.to_account_info(),
+                authority: ctx.accounts.escrow_authority.to_account_info(),
+            },
+            signer_seeds,
+        ))?;
+
+        listing.status = SaleStatus::Filled;
+        property.active_listings_count = property
+            .active_listings_count
+            .checked_sub(1)
+            .ok_or(ErrorCode::MathUnderflow)?;
+        property.active_escrowed_amount = property
+            .active_escrowed_amount
+            .checked_sub(listing.amount)
+            .ok_or(ErrorCode::MathUnderflow)?;
+        property.total_free_value_sold = property
+            .total_free_value_sold
+            .checked_add(listing.amount)
+            .ok_or(ErrorCode::MathOverflow)?;
+
+        let old_status = property.status;
+        property.status = if property.total_free_value_sold == property.free_value_units {
+            PropertyStatus::SoldOut
+        } else if property.active_listings_count > 0 {
+            PropertyStatus::ActiveSale
+        } else {
+            PropertyStatus::Tokenized
+        };
+
+        emit!(PrimarySalePurchased {
+            listing: listing_key,
+            listing_id: listing.listing_id,
+            property: property.key(),
+            property_id: property.property_id,
+            buyer: ctx.accounts.buyer.key(),
+            seller: ctx.accounts.seller.key(),
+            amount: listing.amount,
+            price_lamports: listing.price_lamports,
+        });
+        emit!(PropertyStatusUpdated {
+            property: property.key(),
+            property_id: property.property_id,
+            old_status,
+            new_status: property.status,
+        });
+
+        Ok(())
+    }
+
+    pub fn cancel_primary_sale_listing(ctx: Context<CancelPrimarySaleListing>) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.token_program.key(),
+            anchor_spl::token::ID,
+            ErrorCode::InvalidTokenProgram
+        );
+        require_keys_eq!(
+            ctx.accounts.associated_token_program.key(),
+            anchor_spl::associated_token::ID,
+            ErrorCode::InvalidAssociatedTokenProgram
+        );
+
+        let listing = &mut ctx.accounts.listing;
+        let property = &mut ctx.accounts.property;
+        require!(listing.status == SaleStatus::Active, ErrorCode::ListingNotActive);
+        require_keys_eq!(
+            ctx.accounts.value_mint.key(),
+            listing.value_mint,
+            ErrorCode::InvalidMint
+        );
+        require_keys_eq!(
+            ctx.accounts.value_mint.key(),
+            property.value_mint,
+            ErrorCode::InvalidMint
+        );
+        require!(
+            ctx.accounts.value_mint.decimals == 0,
+            ErrorCode::InvalidDecimals
+        );
+        require_keys_eq!(
+            ctx.accounts.seller_token_account.key(),
+            listing.seller_token_account,
+            ErrorCode::InvalidOwnerTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.seller_token_account.owner,
+            ctx.accounts.seller.key(),
+            ErrorCode::InvalidOwnerTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.seller_token_account.mint,
+            listing.value_mint,
+            ErrorCode::InvalidOwnerTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.escrow_token_account.key(),
+            listing.escrow_token_account,
+            ErrorCode::InvalidEscrowTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.escrow_token_account.owner,
+            listing.escrow_authority,
+            ErrorCode::InvalidEscrowTokenAccount
+        );
+        require_keys_eq!(
+            ctx.accounts.escrow_token_account.mint,
+            listing.value_mint,
+            ErrorCode::InvalidEscrowTokenAccount
+        );
+        require!(
+            ctx.accounts.escrow_token_account.amount >= listing.amount,
+            ErrorCode::InsufficientFreeValueBalance
+        );
+
+        let listing_key = listing.key();
+        let escrow_bump = ctx.bumps.escrow_authority;
+        let escrow_seeds: &[&[u8]] = &[
+            ESCROW_AUTHORITY_SEED,
+            listing_key.as_ref(),
+            &[escrow_bump],
+        ];
+        let signer_seeds = &[escrow_seeds];
+
+        token::transfer_checked(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                TransferChecked {
+                    from: ctx.accounts.escrow_token_account.to_account_info(),
+                    mint: ctx.accounts.value_mint.to_account_info(),
+                    to: ctx.accounts.seller_token_account.to_account_info(),
+                    authority: ctx.accounts.escrow_authority.to_account_info(),
+                },
+                signer_seeds,
+            ),
+            listing.amount,
+            ctx.accounts.value_mint.decimals,
+        )?;
+
+        token::close_account(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            CloseAccount {
+                account: ctx.accounts.escrow_token_account.to_account_info(),
+                destination: ctx.accounts.seller.to_account_info(),
+                authority: ctx.accounts.escrow_authority.to_account_info(),
+            },
+            signer_seeds,
+        ))?;
+
+        listing.status = SaleStatus::Cancelled;
+        property.active_listings_count = property
+            .active_listings_count
+            .checked_sub(1)
+            .ok_or(ErrorCode::MathUnderflow)?;
+        property.active_escrowed_amount = property
+            .active_escrowed_amount
+            .checked_sub(listing.amount)
+            .ok_or(ErrorCode::MathUnderflow)?;
+
+        let old_status = property.status;
+        property.status = if property.total_free_value_sold == property.free_value_units {
+            PropertyStatus::SoldOut
+        } else if property.active_listings_count > 0 {
+            PropertyStatus::ActiveSale
+        } else {
+            PropertyStatus::Tokenized
+        };
+
+        emit!(PrimarySaleCancelled {
+            listing: listing_key,
+            listing_id: listing.listing_id,
+            property: property.key(),
+            property_id: property.property_id,
+            seller: ctx.accounts.seller.key(),
+            amount: listing.amount,
+        });
+        emit!(PropertyStatusUpdated {
+            property: property.key(),
+            property_id: property.property_id,
+            old_status,
+            new_status: property.status,
+        });
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -188,6 +736,204 @@ pub struct MockVerifyProperty<'info> {
     )]
     pub property: Account<'info, PropertyAccount>,
     pub verifier: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct TokenizeProperty<'info> {
+    #[account(
+        mut,
+        seeds = [PROPERTY_SEED, property.property_id.to_le_bytes().as_ref()],
+        bump = property.bump,
+        has_one = owner
+    )]
+    pub property: Account<'info, PropertyAccount>,
+    #[account(
+        init,
+        payer = owner,
+        space = UsufructPosition::SPACE,
+        seeds = [USUFRUCT_POSITION_SEED, property.key().as_ref()],
+        bump
+    )]
+    pub usufruct_position: Account<'info, UsufructPosition>,
+    #[account(
+        init,
+        payer = owner,
+        mint::decimals = 0,
+        mint::authority = value_mint_authority,
+        mint::token_program = token_program
+    )]
+    pub value_mint: Account<'info, Mint>,
+    /// CHECK: PDA used only as temporary mint authority during tokenization.
+    #[account(
+        seeds = [VALUE_MINT_AUTHORITY_SEED, property.key().as_ref()],
+        bump
+    )]
+    pub value_mint_authority: UncheckedAccount<'info>,
+    #[account(
+        init,
+        payer = owner,
+        associated_token::mint = value_mint,
+        associated_token::authority = owner,
+        associated_token::token_program = token_program
+    )]
+    pub owner_token_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreatePrimarySaleListing<'info> {
+    #[account(
+        mut,
+        seeds = [PROTOCOL_STATE_SEED],
+        bump = protocol_state.bump
+    )]
+    pub protocol_state: Account<'info, ProtocolState>,
+    #[account(
+        mut,
+        seeds = [PROPERTY_SEED, property.property_id.to_le_bytes().as_ref()],
+        bump = property.bump,
+        has_one = owner
+    )]
+    pub property: Account<'info, PropertyAccount>,
+    #[account(
+        init,
+        payer = owner,
+        space = ListingAccount::SPACE,
+        seeds = [
+            LISTING_SEED,
+            property.key().as_ref(),
+            protocol_state.next_listing_id.to_le_bytes().as_ref()
+        ],
+        bump
+    )]
+    pub listing: Account<'info, ListingAccount>,
+    #[account(mut)]
+    pub value_mint: Account<'info, Mint>,
+    #[account(
+        mut,
+        associated_token::mint = value_mint,
+        associated_token::authority = owner,
+        associated_token::token_program = token_program
+    )]
+    pub owner_token_account: Account<'info, TokenAccount>,
+    /// CHECK: PDA used only as token escrow authority.
+    #[account(
+        seeds = [ESCROW_AUTHORITY_SEED, listing.key().as_ref()],
+        bump
+    )]
+    pub escrow_authority: UncheckedAccount<'info>,
+    #[account(
+        init,
+        payer = owner,
+        associated_token::mint = value_mint,
+        associated_token::authority = escrow_authority,
+        associated_token::token_program = token_program
+    )]
+    pub escrow_token_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct BuyPrimarySaleListing<'info> {
+    #[account(
+        mut,
+        seeds = [
+            LISTING_SEED,
+            property.key().as_ref(),
+            listing.listing_id.to_le_bytes().as_ref()
+        ],
+        bump = listing.bump
+    )]
+    pub listing: Account<'info, ListingAccount>,
+    #[account(
+        mut,
+        seeds = [PROPERTY_SEED, property.property_id.to_le_bytes().as_ref()],
+        bump = property.bump,
+        constraint = listing.property == property.key() @ ErrorCode::InvalidMint
+    )]
+    pub property: Account<'info, PropertyAccount>,
+    #[account(mut)]
+    pub buyer: Signer<'info>,
+    #[account(
+        mut,
+        address = listing.seller @ ErrorCode::InvalidSeller
+    )]
+    pub seller: SystemAccount<'info>,
+    #[account(mut)]
+    pub value_mint: Account<'info, Mint>,
+    /// CHECK: PDA used only as token escrow authority.
+    #[account(
+        seeds = [ESCROW_AUTHORITY_SEED, listing.key().as_ref()],
+        bump,
+        address = listing.escrow_authority @ ErrorCode::InvalidEscrowAuthority
+    )]
+    pub escrow_authority: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub escrow_token_account: Account<'info, TokenAccount>,
+    #[account(
+        mut,
+        associated_token::mint = value_mint,
+        associated_token::authority = buyer,
+        associated_token::token_program = token_program
+    )]
+    pub buyer_token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CancelPrimarySaleListing<'info> {
+    #[account(
+        mut,
+        seeds = [
+            LISTING_SEED,
+            property.key().as_ref(),
+            listing.listing_id.to_le_bytes().as_ref()
+        ],
+        bump = listing.bump
+    )]
+    pub listing: Account<'info, ListingAccount>,
+    #[account(
+        mut,
+        seeds = [PROPERTY_SEED, property.property_id.to_le_bytes().as_ref()],
+        bump = property.bump,
+        constraint = listing.property == property.key() @ ErrorCode::InvalidMint
+    )]
+    pub property: Account<'info, PropertyAccount>,
+    #[account(
+        mut,
+        address = listing.seller @ ErrorCode::InvalidSeller
+    )]
+    pub seller: Signer<'info>,
+    #[account(mut)]
+    pub value_mint: Account<'info, Mint>,
+    /// CHECK: PDA used only as token escrow authority.
+    #[account(
+        seeds = [ESCROW_AUTHORITY_SEED, listing.key().as_ref()],
+        bump,
+        address = listing.escrow_authority @ ErrorCode::InvalidEscrowAuthority
+    )]
+    pub escrow_authority: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub escrow_token_account: Account<'info, TokenAccount>,
+    #[account(
+        mut,
+        associated_token::mint = value_mint,
+        associated_token::authority = seller,
+        associated_token::token_program = token_program
+    )]
+    pub seller_token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
 #[account]

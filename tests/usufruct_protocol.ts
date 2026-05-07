@@ -1,5 +1,16 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccount,
+  createMint,
+  getAccount,
+  getAssociatedTokenAddressSync,
+  getMint,
+  mintTo,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import assert from "node:assert/strict";
@@ -23,6 +34,32 @@ type DecodedPropertyAccount = {
   metadataHash: number[];
   documentsHash: number[];
   locationHash: number[];
+  valueMint: PublicKey;
+  usufructPosition: PublicKey;
+  activeListingsCount: BN;
+  totalFreeValueSold: BN;
+  activeEscrowedAmount: BN;
+  status: unknown;
+};
+type DecodedUsufructPosition = {
+  property: PublicKey;
+  propertyId: BN;
+  holder: PublicKey;
+  linkedValueUnits: BN;
+  linkedValueBps: number;
+  active: boolean;
+};
+type DecodedListingAccount = {
+  listingId: BN;
+  property: PublicKey;
+  propertyId: BN;
+  seller: PublicKey;
+  valueMint: PublicKey;
+  sellerTokenAccount: PublicKey;
+  escrowTokenAccount: PublicKey;
+  escrowAuthority: PublicKey;
+  amount: BN;
+  priceLamports: BN;
   status: unknown;
 };
 
@@ -79,6 +116,8 @@ describe("usufruct_protocol", () => {
   const accounts = program.account as unknown as {
     protocolState: AnchorAccountFetcher<DecodedProtocolState>;
     propertyAccount: AnchorAccountFetcher<DecodedPropertyAccount>;
+    usufructPosition: AnchorAccountFetcher<DecodedUsufructPosition>;
+    listingAccount: AnchorAccountFetcher<DecodedListingAccount>;
   };
   const admin = provider.wallet.publicKey;
   const mockVerifier = Keypair.generate();
@@ -96,11 +135,15 @@ describe("usufruct_protocol", () => {
     await provider.connection.confirmTransaction(signature, "confirmed");
   }
 
-  async function registerValidProperty(propertyId: bigint, signer = owner) {
+  async function registerValidProperty(
+    propertyId: bigint,
+    signer = owner,
+    marketValueLamports = 200_000_000,
+  ) {
     const [property] = derive([Buffer.from("property"), u64Le(propertyId)]);
     await program.methods
       .registerProperty(
-        new BN(200_000_000),
+        new BN(marketValueLamports),
         2_000,
         metadataHash,
         documentsHash,
@@ -115,6 +158,194 @@ describe("usufruct_protocol", () => {
       .signers([signer])
       .rpc();
     return property;
+  }
+
+  async function registerAndMockVerifyNextProperty(signer = owner) {
+    const state = await accounts.protocolState.fetch(
+      derive([Buffer.from("protocol_state")])[0],
+    );
+    const propertyId = BigInt(state.nextPropertyId.toString());
+    const property = await registerValidProperty(propertyId, signer);
+    await program.methods
+      .mockVerifyProperty()
+      .accounts({
+        protocolState: derive([Buffer.from("protocol_state")])[0],
+        property,
+        verifier: signer.publicKey,
+      })
+      .signers([signer])
+      .rpc();
+    return { property, propertyId };
+  }
+
+  async function tokenizeProperty(property: PublicKey, signer = owner) {
+    const valueMint = Keypair.generate();
+    const ownerTokenAccount = getAssociatedTokenAddressSync(
+      valueMint.publicKey,
+      signer.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+    const [usufructPosition] = derive([
+      Buffer.from("usufruct_position"),
+      property.toBuffer(),
+    ]);
+    const [valueMintAuthority] = derive([
+      Buffer.from("value_mint_authority"),
+      property.toBuffer(),
+    ]);
+
+    await program.methods
+      .tokenizeProperty()
+      .accounts({
+        property,
+        usufructPosition,
+        valueMint: valueMint.publicKey,
+        valueMintAuthority,
+        ownerTokenAccount,
+        owner: signer.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([signer, valueMint])
+      .rpc();
+
+    return {
+      valueMint: valueMint.publicKey,
+      ownerTokenAccount,
+      usufructPosition,
+      valueMintAuthority,
+    };
+  }
+
+  async function createPrimarySaleListing(
+    property: PublicKey,
+    tokenized: { valueMint: PublicKey; ownerTokenAccount: PublicKey },
+    amount: number | bigint,
+    signer = owner,
+  ) {
+    const state = await accounts.protocolState.fetch(
+      derive([Buffer.from("protocol_state")])[0],
+    );
+    const listingId = BigInt(state.nextListingId.toString());
+    const [listing] = derive([
+      Buffer.from("listing"),
+      property.toBuffer(),
+      u64Le(listingId),
+    ]);
+    const [escrowAuthority] = derive([
+      Buffer.from("escrow_authority"),
+      listing.toBuffer(),
+    ]);
+    const escrowTokenAccount = getAssociatedTokenAddressSync(
+      tokenized.valueMint,
+      escrowAuthority,
+      true,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+
+    await program.methods
+      .createPrimarySaleListing(new BN(amount.toString()))
+      .accounts({
+        protocolState: derive([Buffer.from("protocol_state")])[0],
+        property,
+        listing,
+        valueMint: tokenized.valueMint,
+        ownerTokenAccount: tokenized.ownerTokenAccount,
+        escrowAuthority,
+        escrowTokenAccount,
+        owner: signer.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([signer])
+      .rpc();
+
+    return { listing, listingId, escrowAuthority, escrowTokenAccount };
+  }
+
+  async function setupActiveListing(amount = 300_000) {
+    const { property } = await registerAndMockVerifyNextProperty();
+    const tokenized = await tokenizeProperty(property);
+    const created = await createPrimarySaleListing(property, tokenized, amount);
+    const listing = await accounts.listingAccount.fetch(created.listing);
+    return { property, tokenized, created, listing };
+  }
+
+  async function createBuyerTokenAccount(buyer: Keypair, valueMint: PublicKey) {
+    await fund(buyer);
+    return createAssociatedTokenAccount(
+      provider.connection,
+      buyer,
+      valueMint,
+      buyer.publicKey,
+      undefined,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+  }
+
+  async function buyPrimarySaleListing(
+    property: PublicKey,
+    tokenized: { valueMint: PublicKey },
+    created: { listing: PublicKey; escrowAuthority: PublicKey; escrowTokenAccount: PublicKey },
+    buyer: Keypair,
+    buyerTokenAccount: PublicKey,
+    expectedAmount: number | bigint,
+    expectedPriceLamports: number | bigint,
+    overrides = {},
+    signers = [buyer],
+  ) {
+    await program.methods
+      .buyPrimarySaleListing(
+        new BN(expectedAmount.toString()),
+        new BN(expectedPriceLamports.toString()),
+      )
+      .accounts({
+        listing: created.listing,
+        property,
+        buyer: buyer.publicKey,
+        seller: owner.publicKey,
+        valueMint: tokenized.valueMint,
+        escrowAuthority: created.escrowAuthority,
+        escrowTokenAccount: created.escrowTokenAccount,
+        buyerTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        ...overrides,
+      })
+      .signers(signers)
+      .rpc();
+  }
+
+  async function cancelPrimarySaleListing(
+    property: PublicKey,
+    tokenized: { valueMint: PublicKey; ownerTokenAccount: PublicKey },
+    created: { listing: PublicKey; escrowAuthority: PublicKey; escrowTokenAccount: PublicKey },
+    overrides = {},
+    signers = [owner],
+  ) {
+    await program.methods
+      .cancelPrimarySaleListing()
+      .accounts({
+        listing: created.listing,
+        property,
+        seller: owner.publicKey,
+        valueMint: tokenized.valueMint,
+        escrowAuthority: created.escrowAuthority,
+        escrowTokenAccount: created.escrowTokenAccount,
+        sellerTokenAccount: tokenized.ownerTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        ...overrides,
+      })
+      .signers(signers)
+      .rpc();
   }
 
   it("loads the Anchor program workspace", () => {
@@ -412,6 +643,855 @@ describe("usufruct_protocol", () => {
           .signers([owner])
           .rpc(),
       "AccountNotInitialized",
+    );
+  });
+
+  it("tokenizes a mock verified property into an SPL mint and usufruct position", async () => {
+    const { property } = await registerAndMockVerifyNextProperty();
+    const tokenized = await tokenizeProperty(property);
+
+    const propertyAccount = await accounts.propertyAccount.fetch(property);
+    assert.deepEqual(propertyAccount.status, { tokenized: {} });
+    assert.equal(propertyAccount.valueMint.toBase58(), tokenized.valueMint.toBase58());
+    assert.equal(
+      propertyAccount.usufructPosition.toBase58(),
+      tokenized.usufructPosition.toBase58(),
+    );
+
+    const mint = await getMint(provider.connection, tokenized.valueMint);
+    assert.equal(mint.decimals, 0);
+    assert.equal(mint.supply, 800_000n);
+    assert.equal(mint.mintAuthority, null);
+    assert.equal(mint.freezeAuthority, null);
+
+    const ownerToken = await getAccount(
+      provider.connection,
+      tokenized.ownerTokenAccount,
+    );
+    assert.equal(ownerToken.mint.toBase58(), tokenized.valueMint.toBase58());
+    assert.equal(ownerToken.owner.toBase58(), owner.publicKey.toBase58());
+    assert.equal(ownerToken.amount, 800_000n);
+
+    const usufruct = await accounts.usufructPosition.fetch(
+      tokenized.usufructPosition,
+    );
+    assert.equal(usufruct.property.toBase58(), property.toBase58());
+    assert.equal(usufruct.holder.toBase58(), owner.publicKey.toBase58());
+    assert.equal(usufruct.linkedValueUnits.toString(), "200000");
+    assert.equal(usufruct.linkedValueBps, 2_000);
+    assert.equal(usufruct.active, true);
+  });
+
+  it("rejects tokenization before mock verification and duplicate tokenization", async () => {
+    const state = await accounts.protocolState.fetch(
+      derive([Buffer.from("protocol_state")])[0],
+    );
+    const pendingProperty = await registerValidProperty(
+      BigInt(state.nextPropertyId.toString()),
+    );
+
+    await expectAnchorError(
+      () => tokenizeProperty(pendingProperty),
+      "PropertyNotMockVerified",
+    );
+
+    const { property } = await registerAndMockVerifyNextProperty();
+    await tokenizeProperty(property);
+    await expectAnchorError(
+      () => tokenizeProperty(property),
+      "already in use",
+    );
+  });
+
+  it("rejects false tokenization accounts and programs", async () => {
+    const { property } = await registerAndMockVerifyNextProperty();
+    const valueMint = Keypair.generate();
+    const [usufructPosition] = derive([
+      Buffer.from("usufruct_position"),
+      property.toBuffer(),
+    ]);
+    const [valueMintAuthority] = derive([
+      Buffer.from("value_mint_authority"),
+      property.toBuffer(),
+    ]);
+    const ownerTokenAccount = getAssociatedTokenAddressSync(
+      valueMint.publicKey,
+      owner.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+
+    async function attempt(overrides = {}, signers = [owner, valueMint]) {
+      await program.methods
+        .tokenizeProperty()
+        .accounts({
+          property,
+          usufructPosition,
+          valueMint: valueMint.publicKey,
+          valueMintAuthority,
+          ownerTokenAccount,
+          owner: owner.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          ...overrides,
+        })
+        .signers(signers)
+        .rpc();
+    }
+
+    await expectAnchorError(
+      () => attempt({ valueMintAuthority: Keypair.generate().publicKey }),
+      "ConstraintSeeds",
+    );
+    await expectAnchorError(
+      () => attempt({ ownerTokenAccount: Keypair.generate().publicKey }),
+      "account required by the instruction is missing",
+    );
+    await expectAnchorError(
+      () => attempt({ tokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID }),
+      "InvalidProgramId",
+    );
+    await expectAnchorError(
+      () => attempt({ associatedTokenProgram: TOKEN_PROGRAM_ID }),
+      "InvalidProgramId",
+    );
+  });
+
+  it("rejects pre-existing false mints and unauthorized additional minting", async () => {
+    const fakeMint = Keypair.generate();
+    await createMint(
+      provider.connection,
+      owner,
+      owner.publicKey,
+      owner.publicKey,
+      1,
+      fakeMint,
+      undefined,
+      TOKEN_PROGRAM_ID,
+    );
+
+    const { property } = await registerAndMockVerifyNextProperty();
+    const fakeOwnerTokenAccount = getAssociatedTokenAddressSync(
+      fakeMint.publicKey,
+      owner.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+    await expectAnchorError(
+      () =>
+        program.methods
+          .tokenizeProperty()
+          .accounts({
+            property,
+            usufructPosition: derive([
+              Buffer.from("usufruct_position"),
+              property.toBuffer(),
+            ])[0],
+            valueMint: fakeMint.publicKey,
+            valueMintAuthority: derive([
+              Buffer.from("value_mint_authority"),
+              property.toBuffer(),
+            ])[0],
+            ownerTokenAccount: fakeOwnerTokenAccount,
+            owner: owner.publicKey,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([owner, fakeMint])
+          .rpc(),
+      "already in use",
+    );
+
+    const valid = await tokenizeProperty(property);
+    await expectAnchorError(
+      () =>
+        mintTo(
+          provider.connection,
+          owner,
+          valid.valueMint,
+          valid.ownerTokenAccount,
+          owner,
+          1,
+          [],
+          undefined,
+          TOKEN_PROGRAM_ID,
+        ),
+      "fixed",
+    );
+  });
+
+  it("creates a primary sale listing and moves tokens into escrow", async () => {
+    const { property } = await registerAndMockVerifyNextProperty();
+    const tokenized = await tokenizeProperty(property);
+    const created = await createPrimarySaleListing(property, tokenized, 300_000);
+
+    const listing = await accounts.listingAccount.fetch(created.listing);
+    assert.equal(listing.listingId.toString(), created.listingId.toString());
+    assert.equal(listing.property.toBase58(), property.toBase58());
+    assert.equal(listing.seller.toBase58(), owner.publicKey.toBase58());
+    assert.equal(listing.valueMint.toBase58(), tokenized.valueMint.toBase58());
+    assert.equal(
+      listing.sellerTokenAccount.toBase58(),
+      tokenized.ownerTokenAccount.toBase58(),
+    );
+    assert.equal(
+      listing.escrowTokenAccount.toBase58(),
+      created.escrowTokenAccount.toBase58(),
+    );
+    assert.equal(
+      listing.escrowAuthority.toBase58(),
+      created.escrowAuthority.toBase58(),
+    );
+    assert.equal(listing.amount.toString(), "300000");
+    assert.equal(listing.priceLamports.toString(), "60000000");
+    assert.deepEqual(listing.status, { active: {} });
+
+    const ownerToken = await getAccount(
+      provider.connection,
+      tokenized.ownerTokenAccount,
+    );
+    const escrowToken = await getAccount(
+      provider.connection,
+      created.escrowTokenAccount,
+    );
+    assert.equal(ownerToken.amount, 500_000n);
+    assert.equal(escrowToken.amount, 300_000n);
+    assert.equal(escrowToken.owner.toBase58(), created.escrowAuthority.toBase58());
+
+    const propertyAccount = await accounts.propertyAccount.fetch(property);
+    assert.deepEqual(propertyAccount.status, { activeSale: {} });
+    assert.equal(propertyAccount.activeListingsCount.toString(), "1");
+    assert.equal(propertyAccount.activeEscrowedAmount.toString(), "300000");
+    assert.equal(propertyAccount.totalFreeValueSold.toString(), "0");
+  });
+
+  it("rejects invalid listing amounts and insufficient free value balance", async () => {
+    const { property } = await registerAndMockVerifyNextProperty();
+    const tokenized = await tokenizeProperty(property);
+
+    await expectAnchorError(
+      () => createPrimarySaleListing(property, tokenized, 0),
+      "InvalidAmount",
+    );
+    await expectAnchorError(
+      () => createPrimarySaleListing(property, tokenized, 900_000),
+      "InsufficientFreeValueBalance",
+    );
+  });
+
+  it("supports multiple active listings while free value is available", async () => {
+    const { property } = await registerAndMockVerifyNextProperty();
+    const tokenized = await tokenizeProperty(property);
+
+    const first = await createPrimarySaleListing(property, tokenized, 300_000);
+    const second = await createPrimarySaleListing(property, tokenized, 200_000);
+
+    const firstEscrow = await getAccount(provider.connection, first.escrowTokenAccount);
+    const secondEscrow = await getAccount(
+      provider.connection,
+      second.escrowTokenAccount,
+    );
+    const ownerToken = await getAccount(
+      provider.connection,
+      tokenized.ownerTokenAccount,
+    );
+    assert.equal(firstEscrow.amount, 300_000n);
+    assert.equal(secondEscrow.amount, 200_000n);
+    assert.equal(ownerToken.amount, 300_000n);
+
+    const propertyAccount = await accounts.propertyAccount.fetch(property);
+    assert.equal(propertyAccount.activeListingsCount.toString(), "2");
+    assert.equal(propertyAccount.activeEscrowedAmount.toString(), "500000");
+
+    await expectAnchorError(
+      () => createPrimarySaleListing(property, tokenized, 400_000),
+      "InsufficientFreeValueBalance",
+    );
+  });
+
+  it("rejects false listing accounts and programs", async () => {
+    const { property } = await registerAndMockVerifyNextProperty();
+    const tokenized = await tokenizeProperty(property);
+    const state = await accounts.protocolState.fetch(
+      derive([Buffer.from("protocol_state")])[0],
+    );
+    const listingId = BigInt(state.nextListingId.toString());
+    const [listing] = derive([
+      Buffer.from("listing"),
+      property.toBuffer(),
+      u64Le(listingId),
+    ]);
+    const [escrowAuthority] = derive([
+      Buffer.from("escrow_authority"),
+      listing.toBuffer(),
+    ]);
+    const escrowTokenAccount = getAssociatedTokenAddressSync(
+      tokenized.valueMint,
+      escrowAuthority,
+      true,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+
+    async function attempt(overrides = {}, signers = [owner]) {
+      await program.methods
+        .createPrimarySaleListing(new BN(300_000))
+        .accounts({
+          protocolState: derive([Buffer.from("protocol_state")])[0],
+          property,
+          listing,
+          valueMint: tokenized.valueMint,
+          ownerTokenAccount: tokenized.ownerTokenAccount,
+          escrowAuthority,
+          escrowTokenAccount,
+          owner: owner.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          ...overrides,
+        })
+        .signers(signers)
+        .rpc();
+    }
+
+    await expectAnchorError(
+      () => attempt({ owner: stranger.publicKey }, [stranger]),
+      "ConstraintHasOne",
+    );
+    await expectAnchorError(
+      () => attempt({ ownerTokenAccount: Keypair.generate().publicKey }),
+      "AccountNotInitialized",
+    );
+    await expectAnchorError(
+      () => attempt({ valueMint: Keypair.generate().publicKey }),
+      "AccountNotInitialized",
+    );
+    await expectAnchorError(
+      () => attempt({ escrowAuthority: Keypair.generate().publicKey }),
+      "account required by the instruction is missing",
+    );
+    await expectAnchorError(
+      () => attempt({ escrowTokenAccount: Keypair.generate().publicKey }),
+      "account required by the instruction is missing",
+    );
+    await expectAnchorError(
+      () => attempt({ tokenProgram: TOKEN_2022_PROGRAM_ID }),
+      "InvalidProgramId",
+    );
+    await expectAnchorError(
+      () => attempt({ associatedTokenProgram: TOKEN_PROGRAM_ID }),
+      "InvalidProgramId",
+    );
+  });
+
+  it("rejects listing for non-tokenized property and price zero", async () => {
+    const state = await accounts.protocolState.fetch(
+      derive([Buffer.from("protocol_state")])[0],
+    );
+    const nonTokenizedProperty = await registerValidProperty(
+      BigInt(state.nextPropertyId.toString()),
+    );
+    const fakeMint = await createMint(
+      provider.connection,
+      owner,
+      owner.publicKey,
+      null,
+      0,
+      undefined,
+      undefined,
+      TOKEN_PROGRAM_ID,
+    );
+    const fakeOwnerTokenAccount = await createAssociatedTokenAccount(
+      provider.connection,
+      owner,
+      fakeMint,
+      owner.publicKey,
+      undefined,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+    await expectAnchorError(
+      () =>
+        createPrimarySaleListing(
+          nonTokenizedProperty,
+          { valueMint: fakeMint, ownerTokenAccount: fakeOwnerTokenAccount },
+          1,
+        ),
+      "PropertyNotTokenized",
+    );
+
+    const latestState = await accounts.protocolState.fetch(
+      derive([Buffer.from("protocol_state")])[0],
+    );
+    const lowValueProperty = await registerValidProperty(
+      BigInt(latestState.nextPropertyId.toString()),
+      owner,
+      1,
+    );
+    await program.methods
+      .mockVerifyProperty()
+      .accounts({
+        protocolState: derive([Buffer.from("protocol_state")])[0],
+        property: lowValueProperty,
+        verifier: owner.publicKey,
+      })
+      .signers([owner])
+      .rpc();
+    const tokenized = await tokenizeProperty(lowValueProperty);
+    await expectAnchorError(
+      () => createPrimarySaleListing(lowValueProperty, tokenized, 1),
+      "PriceZero",
+    );
+  });
+
+  it("buys a primary sale listing, pays seller, transfers tokens, and closes escrow", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+    const buyer = Keypair.generate();
+    const buyerTokenAccount = await createBuyerTokenAccount(buyer, tokenized.valueMint);
+    const sellerBefore = await provider.connection.getBalance(owner.publicKey);
+
+    await buyPrimarySaleListing(
+      property,
+      tokenized,
+      created,
+      buyer,
+      buyerTokenAccount,
+      300_000,
+      60_000_000,
+    );
+
+    const listing = await accounts.listingAccount.fetch(created.listing);
+    assert.deepEqual(listing.status, { filled: {} });
+
+    const propertyAccount = await accounts.propertyAccount.fetch(property);
+    assert.deepEqual(propertyAccount.status, { tokenized: {} });
+    assert.equal(propertyAccount.activeListingsCount.toString(), "0");
+    assert.equal(propertyAccount.activeEscrowedAmount.toString(), "0");
+    assert.equal(propertyAccount.totalFreeValueSold.toString(), "300000");
+
+    const buyerToken = await getAccount(provider.connection, buyerTokenAccount);
+    assert.equal(buyerToken.amount, 300_000n);
+
+    const escrowAccountInfo = await provider.connection.getAccountInfo(
+      created.escrowTokenAccount,
+    );
+    assert.equal(escrowAccountInfo, null);
+
+    const sellerAfter = await provider.connection.getBalance(owner.publicKey);
+    assert.ok(sellerAfter > sellerBefore + 60_000_000);
+  });
+
+  it("rejects buyer equal to seller and stale expected values", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+    const buyer = Keypair.generate();
+    const buyerTokenAccount = await createBuyerTokenAccount(buyer, tokenized.valueMint);
+
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          owner,
+          tokenized.ownerTokenAccount,
+          300_000,
+          60_000_000,
+          { buyer: owner.publicKey },
+          [owner],
+        ),
+      "BuyerCannotBeSeller",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_001,
+          60_000_000,
+        ),
+      "UnexpectedAmount",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_001,
+        ),
+      "UnexpectedPrice",
+    );
+  });
+
+  it("rejects buying a filled listing", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+    const buyer = Keypair.generate();
+    const buyerTokenAccount = await createBuyerTokenAccount(buyer, tokenized.valueMint);
+    await buyPrimarySaleListing(
+      property,
+      tokenized,
+      created,
+      buyer,
+      buyerTokenAccount,
+      300_000,
+      60_000_000,
+    );
+
+    const secondBuyer = Keypair.generate();
+    const secondBuyerTokenAccount = await createBuyerTokenAccount(
+      secondBuyer,
+      tokenized.valueMint,
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          secondBuyer,
+          secondBuyerTokenAccount,
+          300_000,
+          60_000_000,
+          { escrowTokenAccount: tokenized.ownerTokenAccount },
+        ),
+      "ListingNotActive",
+    );
+  });
+
+  it("requires the UI-created canonical buyer ATA before purchase", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+    const buyer = Keypair.generate();
+    await fund(buyer);
+    const missingBuyerTokenAccount = getAssociatedTokenAddressSync(
+      tokenized.valueMint,
+      buyer.publicKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          missingBuyerTokenAccount,
+          300_000,
+          60_000_000,
+        ),
+      "AccountNotInitialized",
+    );
+
+    const buyerTokenAccount = await createAssociatedTokenAccount(
+      provider.connection,
+      buyer,
+      tokenized.valueMint,
+      buyer.publicKey,
+      undefined,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
+    await buyPrimarySaleListing(
+      property,
+      tokenized,
+      created,
+      buyer,
+      buyerTokenAccount,
+      300_000,
+      60_000_000,
+    );
+
+    const buyerToken = await getAccount(provider.connection, buyerTokenAccount);
+    assert.equal(buyerToken.amount, 300_000n);
+  });
+
+  it("rejects false buyer, mint, seller, escrow, property, and programs on purchase", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+    const buyer = Keypair.generate();
+    const buyerTokenAccount = await createBuyerTokenAccount(buyer, tokenized.valueMint);
+    const falseProperty = Keypair.generate().publicKey;
+
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          Keypair.generate().publicKey,
+          300_000,
+          60_000_000,
+        ),
+      "AccountNotInitialized",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_000,
+          { valueMint: Keypair.generate().publicKey },
+        ),
+      "AccountNotInitialized",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_000,
+          { seller: stranger.publicKey },
+        ),
+      "InvalidSeller",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_000,
+          { escrowTokenAccount: tokenized.ownerTokenAccount },
+        ),
+      "InvalidEscrowTokenAccount",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_000,
+          { escrowAuthority: Keypair.generate().publicKey },
+        ),
+      "ConstraintSeeds",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          falseProperty,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_000,
+        ),
+      "AccountNotInitialized",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_000,
+          { tokenProgram: TOKEN_2022_PROGRAM_ID },
+        ),
+      "InvalidProgramId",
+    );
+    await expectAnchorError(
+      () =>
+        buyPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          buyer,
+          buyerTokenAccount,
+          300_000,
+          60_000_000,
+          { associatedTokenProgram: TOKEN_PROGRAM_ID },
+        ),
+      "InvalidProgramId",
+    );
+  });
+
+  it("marks property as sold out after buying all free value", async () => {
+    const { property, tokenized, created } = await setupActiveListing(800_000);
+    const buyer = Keypair.generate();
+    const buyerTokenAccount = await createBuyerTokenAccount(buyer, tokenized.valueMint);
+
+    await buyPrimarySaleListing(
+      property,
+      tokenized,
+      created,
+      buyer,
+      buyerTokenAccount,
+      800_000,
+      160_000_000,
+    );
+
+    const propertyAccount = await accounts.propertyAccount.fetch(property);
+    assert.deepEqual(propertyAccount.status, { soldOut: {} });
+    assert.equal(propertyAccount.activeListingsCount.toString(), "0");
+    assert.equal(propertyAccount.activeEscrowedAmount.toString(), "0");
+    assert.equal(propertyAccount.totalFreeValueSold.toString(), "800000");
+  });
+
+  it("cancels a primary sale listing, returns tokens, closes escrow, and keeps listing history", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+    const sellerBefore = await provider.connection.getBalance(owner.publicKey);
+
+    await cancelPrimarySaleListing(property, tokenized, created);
+
+    const listing = await accounts.listingAccount.fetch(created.listing);
+    assert.deepEqual(listing.status, { cancelled: {} });
+
+    const propertyAccount = await accounts.propertyAccount.fetch(property);
+    assert.deepEqual(propertyAccount.status, { tokenized: {} });
+    assert.equal(propertyAccount.activeListingsCount.toString(), "0");
+    assert.equal(propertyAccount.activeEscrowedAmount.toString(), "0");
+    assert.equal(propertyAccount.totalFreeValueSold.toString(), "0");
+
+    const sellerToken = await getAccount(
+      provider.connection,
+      tokenized.ownerTokenAccount,
+    );
+    assert.equal(sellerToken.amount, 800_000n);
+
+    const escrowAccountInfo = await provider.connection.getAccountInfo(
+      created.escrowTokenAccount,
+    );
+    assert.equal(escrowAccountInfo, null);
+
+    const sellerAfter = await provider.connection.getBalance(owner.publicKey);
+    assert.ok(sellerAfter > sellerBefore);
+  });
+
+  it("rejects cancellation by non-seller", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(
+          property,
+          tokenized,
+          created,
+          { seller: stranger.publicKey },
+          [stranger],
+        ),
+      "InvalidSeller",
+    );
+  });
+
+  it("rejects cancelling filled and cancelled listings", async () => {
+    const bought = await setupActiveListing(300_000);
+    const buyer = Keypair.generate();
+    const buyerTokenAccount = await createBuyerTokenAccount(
+      buyer,
+      bought.tokenized.valueMint,
+    );
+    await buyPrimarySaleListing(
+      bought.property,
+      bought.tokenized,
+      bought.created,
+      buyer,
+      buyerTokenAccount,
+      300_000,
+      60_000_000,
+    );
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(
+          bought.property,
+          bought.tokenized,
+          bought.created,
+          { escrowTokenAccount: bought.tokenized.ownerTokenAccount },
+        ),
+      "ListingNotActive",
+    );
+
+    const cancelled = await setupActiveListing(300_000);
+    await cancelPrimarySaleListing(
+      cancelled.property,
+      cancelled.tokenized,
+      cancelled.created,
+    );
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(
+          cancelled.property,
+          cancelled.tokenized,
+          cancelled.created,
+          { escrowTokenAccount: cancelled.tokenized.ownerTokenAccount },
+        ),
+      "ListingNotActive",
+    );
+  });
+
+  it("rejects false cancellation accounts and programs", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(property, tokenized, created, {
+          sellerTokenAccount: Keypair.generate().publicKey,
+        }),
+      "AccountNotInitialized",
+    );
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(property, tokenized, created, {
+          valueMint: Keypair.generate().publicKey,
+        }),
+      "AccountNotInitialized",
+    );
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(property, tokenized, created, {
+          escrowTokenAccount: tokenized.ownerTokenAccount,
+        }),
+      "InvalidEscrowTokenAccount",
+    );
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(property, tokenized, created, {
+          escrowAuthority: Keypair.generate().publicKey,
+        }),
+      "ConstraintSeeds",
+    );
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(property, tokenized, created, {
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+        }),
+      "InvalidProgramId",
+    );
+    await expectAnchorError(
+      () =>
+        cancelPrimarySaleListing(property, tokenized, created, {
+          associatedTokenProgram: TOKEN_PROGRAM_ID,
+        }),
+      "InvalidProgramId",
     );
   });
 });

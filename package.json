@@ -17,7 +17,11 @@
     "solana:import-deployer": "powershell -ExecutionPolicy Bypass -File scripts/import-solana-deployer.ps1",
     "solana:preflight": "powershell -ExecutionPolicy Bypass -File scripts/solana-preflight.ps1",
     "solana:deploy:devnet": "powershell -ExecutionPolicy Bypass -File scripts/deploy-solana-devnet.ps1",
-    "solana:smoke:ms3": "dotenv -e .env.deploy -- node scripts/smoke-ms3-devnet.mjs"
+    "solana:smoke:ms3": "dotenv -e .env.deploy -- node scripts/smoke-ms3-devnet.mjs",
+    "solana:smoke:ms4": "dotenv -e .env.deploy -- node scripts/smoke-ms4-devnet.mjs",
+    "solana:smoke:ms5": "dotenv -e .env.deploy -- node scripts/smoke-ms5-devnet.mjs",
+    "solana:smoke:ms6": "dotenv -e .env.deploy -- node scripts/smoke-ms6-devnet.mjs",
+    "solana:smoke:ms7": "dotenv -e .env.deploy -- node scripts/smoke-ms7-devnet.mjs"
   },
   "dependencies": {
     "@noble/hashes": "1.8.0",
