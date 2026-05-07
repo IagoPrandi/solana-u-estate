@@ -2779,15 +2779,15 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Arquivar código Ethereum.
-- [ ] Remover dependências EVM do caminho ativo.
+- [x] Arquivar código Ethereum.
+- [x] Remover dependências EVM do caminho ativo.
 
 ### Critérios de aprovação
 
-- [ ] Documento de decisão técnica aprovado.
-- [ ] Código Ethereum movido para `/archive/ethereum-sepolia-phase0/`.
-- [ ] Nenhuma rota ativa depende de contrato Sepolia.
-- [ ] Variáveis EVM removidas do `.env.app` ativo.
+- [x] Documento de decisão técnica aprovado.
+- [x] Código Ethereum movido para `/archive/ethereum-sepolia-phase0/`.
+- [x] Nenhuma rota ativa depende de contrato Sepolia.
+- [x] Variáveis EVM removidas do `.env.app` ativo.
 
 ---
 
@@ -2797,31 +2797,31 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Instalar versões fixadas.
-- [ ] Criar workspace Anchor.
-- [ ] Criar programa `usufruct_protocol`.
-- [ ] Configurar `Anchor.toml` para Devnet e localnet.
-- [ ] Criar `.env.deploy` Solana.
-- [ ] Criar `.env.app` Solana.
-- [ ] Gerar IDL.
-- [ ] Criar script de deploy Devnet.
-- [ ] Criar script de preflight Solana.
-- [ ] Garantir que keypairs privadas não entram no container app.
+- [x] Instalar versões fixadas.
+- [x] Criar workspace Anchor.
+- [x] Criar programa `usufruct_protocol`.
+- [x] Configurar `Anchor.toml` para Devnet e localnet.
+- [x] Criar `.env.deploy` Solana.
+- [x] Criar `.env.app` Solana.
+- [x] Gerar IDL.
+- [x] Criar script de deploy Devnet.
+- [x] Criar script de preflight Solana.
+- [x] Garantir que keypairs privadas não entram no container app.
 
 ### Critérios de aprovação
 
-- [ ] `anchor build` passa.
-- [ ] `anchor test` mínimo passa.
-- [ ] `anchor deploy` em Devnet funciona.
-- [ ] `programId` é salvo no `.env.app`.
-- [ ] App lê `programId` sem chave privada.
+- [x] `anchor build` passa.
+- [x] `anchor test` mínimo passa.
+- [x] `anchor deploy` em Devnet funciona.
+- [x] `programId` é salvo no `.env.app`.
+- [x] App lê `programId` sem chave privada.
 
 ### Testes
 
-- [ ] Teste de versão de tooling.
-- [ ] Teste de build Anchor.
-- [ ] Teste de IDL gerada.
-- [ ] Teste de Docker sem secrets.
+- [x] Teste de versão de tooling.
+- [x] Teste de build Anchor.
+- [x] Teste de IDL gerada.
+- [x] Teste de Docker sem secrets.
 
 ---
 

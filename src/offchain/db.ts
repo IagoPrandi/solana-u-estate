@@ -11,7 +11,7 @@ const defaultDatabase: OffchainDatabase = {
   properties: [],
   fiatRatesCache: {
     provider: "okx",
-    base: "ETH",
+    base: "SOL",
     routes: {},
     rates: {},
     unavailable: [],

@@ -1,4 +1,4 @@
-import os from "node:os";
+﻿import os from "node:os";
 import path from "node:path";
 import { mkdir, rm } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -112,13 +112,13 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "1111111111111111111111111111111111111111111111111111111111111111",
     });
 
     expect(updatedRecord.onchainRegistration).toMatchObject({
       propertyId: "1",
       txHash:
-        "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "1111111111111111111111111111111111111111111111111111111111111111",
       status: "PendingMockVerification",
     });
     expect(updatedRecord.onchainRegistration?.registeredAt).toBeTruthy();
@@ -135,7 +135,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "1111111111111111111111111111111111111111111111111111111111111111",
     });
 
     const updatedRecord = await savePropertyMockVerification({
@@ -143,14 +143,14 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "2222222222222222222222222222222222222222222222222222222222222222",
     });
 
     expect(updatedRecord.onchainRegistration).toMatchObject({
       propertyId: "1",
       status: "MockVerified",
       verificationTxHash:
-        "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "2222222222222222222222222222222222222222222222222222222222222222",
     });
     expect(updatedRecord.onchainRegistration?.verifiedAt).toBeTruthy();
   });
@@ -163,7 +163,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "1111111111111111111111111111111111111111111111111111111111111111",
     });
 
     await savePropertyMockVerification({
@@ -171,7 +171,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "2222222222222222222222222222222222222222222222222222222222222222",
     });
 
     const updatedRecord = await savePropertyTokenization({
@@ -179,8 +179,8 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x3333333333333333333333333333333333333333333333333333333333333333",
-      valueTokenAddress: "0x0000000000000000000000000000000000000ABC",
+        "3333333333333333333333333333333333333333333333333333333333333333",
+      valueTokenAddress: "11111111111111111111111111111112",
       usufructTokenId: "1",
       linkedValueUnits: "200000",
       freeValueUnits: "800000",
@@ -190,8 +190,8 @@ describe("property drafts", () => {
       propertyId: "1",
       status: "Tokenized",
       tokenizationTxHash:
-        "0x3333333333333333333333333333333333333333333333333333333333333333",
-      valueTokenAddress: "0x0000000000000000000000000000000000000ABC",
+        "3333333333333333333333333333333333333333333333333333333333333333",
+      valueTokenAddress: "11111111111111111111111111111112",
       usufructTokenId: "1",
       linkedValueUnits: "200000",
       freeValueUnits: "800000",
@@ -207,7 +207,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "1111111111111111111111111111111111111111111111111111111111111111",
     });
 
     await savePropertyMockVerification({
@@ -215,7 +215,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "2222222222222222222222222222222222222222222222222222222222222222",
     });
 
     await savePropertyTokenization({
@@ -223,8 +223,8 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x3333333333333333333333333333333333333333333333333333333333333333",
-      valueTokenAddress: "0x0000000000000000000000000000000000000ABC",
+        "3333333333333333333333333333333333333333333333333333333333333333",
+      valueTokenAddress: "11111111111111111111111111111112",
       usufructTokenId: "1",
       linkedValueUnits: "200000",
       freeValueUnits: "800000",
@@ -236,7 +236,7 @@ describe("property drafts", () => {
       propertyId: "1",
       listingId: "1",
       txHash:
-        "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "4444444444444444444444444444444444444444444444444444444444444444",
       amount: "300000",
       priceWei: "3000000000000000000",
     });
@@ -254,7 +254,7 @@ describe("property drafts", () => {
         amount: "300000",
         priceWei: "3000000000000000000",
         txHash:
-          "0x4444444444444444444444444444444444444444444444444444444444444444",
+          "4444444444444444444444444444444444444444444444444444444444444444",
         status: "Active",
       }),
     ]);
@@ -268,7 +268,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "1111111111111111111111111111111111111111111111111111111111111111",
     });
 
     await savePropertyMockVerification({
@@ -276,7 +276,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "2222222222222222222222222222222222222222222222222222222222222222",
     });
 
     await savePropertyTokenization({
@@ -284,8 +284,8 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x3333333333333333333333333333333333333333333333333333333333333333",
-      valueTokenAddress: "0x0000000000000000000000000000000000000ABC",
+        "3333333333333333333333333333333333333333333333333333333333333333",
+      valueTokenAddress: "11111111111111111111111111111112",
       usufructTokenId: "1",
       linkedValueUnits: "200000",
       freeValueUnits: "800000",
@@ -297,7 +297,7 @@ describe("property drafts", () => {
       propertyId: "1",
       listingId: "1",
       txHash:
-        "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "4444444444444444444444444444444444444444444444444444444444444444",
       amount: "300000",
       priceWei: "3000000000000000000",
     });
@@ -308,8 +308,8 @@ describe("property drafts", () => {
       propertyId: "1",
       listingId: "1",
       txHash:
-        "0x5555555555555555555555555555555555555555555555555555555555555555",
-      buyerWallet: "0x0000000000000000000000000000000000000B0B",
+        "5555555555555555555555555555555555555555555555555555555555555555",
+      buyerWallet: "11111111111111111111111111111114",
       amount: "300000",
       priceWei: "3000000000000000000",
     });
@@ -324,20 +324,20 @@ describe("property drafts", () => {
     });
     expect(updatedRecord.onchainRegistration?.buyerBalances).toEqual([
       expect.objectContaining({
-        buyerWallet: "0x0000000000000000000000000000000000000B0B",
+        buyerWallet: "11111111111111111111111111111114",
         freeValueUnits: "300000",
         totalPaidWei: "3000000000000000000",
         lastPurchaseTxHash:
-          "0x5555555555555555555555555555555555555555555555555555555555555555",
+          "5555555555555555555555555555555555555555555555555555555555555555",
       }),
     ]);
     expect(updatedRecord.onchainRegistration?.primarySaleListings).toEqual([
       expect.objectContaining({
         listingId: "1",
         status: "Filled",
-        buyerWallet: "0x0000000000000000000000000000000000000B0B",
+        buyerWallet: "11111111111111111111111111111114",
         purchaseTxHash:
-          "0x5555555555555555555555555555555555555555555555555555555555555555",
+          "5555555555555555555555555555555555555555555555555555555555555555",
       }),
     ]);
   });
@@ -350,7 +350,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "1111111111111111111111111111111111111111111111111111111111111111",
     });
 
     await savePropertyMockVerification({
@@ -358,7 +358,7 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "2222222222222222222222222222222222222222222222222222222222222222",
     });
 
     await savePropertyTokenization({
@@ -366,8 +366,8 @@ describe("property drafts", () => {
       localPropertyId: record.localPropertyId,
       propertyId: "1",
       txHash:
-        "0x3333333333333333333333333333333333333333333333333333333333333333",
-      valueTokenAddress: "0x0000000000000000000000000000000000000ABC",
+        "3333333333333333333333333333333333333333333333333333333333333333",
+      valueTokenAddress: "11111111111111111111111111111112",
       usufructTokenId: "1",
       linkedValueUnits: "200000",
       freeValueUnits: "800000",
@@ -379,7 +379,7 @@ describe("property drafts", () => {
       propertyId: "1",
       listingId: "1",
       txHash:
-        "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "4444444444444444444444444444444444444444444444444444444444444444",
       amount: "300000",
       priceWei: "3000000000000000000",
     });
@@ -390,7 +390,7 @@ describe("property drafts", () => {
       propertyId: "1",
       listingId: "1",
       txHash:
-        "0x6666666666666666666666666666666666666666666666666666666666666666",
+        "6666666666666666666666666666666666666666666666666666666666666666",
       amount: "300000",
     });
 
@@ -410,8 +410,8 @@ describe("property drafts", () => {
   });
 
   it("seeds the section 32 demo simulation with the final 70/30 split", async () => {
-    process.env.DEMO_SELLER_ADDRESS = "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a";
-    process.env.DEMO_BUYER_ADDRESS = "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907";
+    process.env.DEMO_SELLER_ADDRESS = "11111111111111111111111111111114";
+    process.env.DEMO_BUYER_ADDRESS = "11111111111111111111111111111113";
 
     const record = await seedSection32DemoScenario();
 
@@ -455,7 +455,7 @@ describe("property drafts", () => {
 function createInput(): PropertyDraftInput {
   return {
     localPropertyId: "4bbf258c-d4d7-40dd-a16d-ee5320cd3f95",
-    ownerWallet: "0x000000000000000000000000000000000000dEaD",
+    ownerWallet: "11111111111111111111111111111113",
     marketValueEth: "10",
     linkedValueBps: 2000,
     description: "Sample property",
@@ -479,3 +479,4 @@ function createInput(): PropertyDraftInput {
     ],
   };
 }
+

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/fiat-rates/route";
 import { getFiatRates } from "@/server/fiat-rates";
 
@@ -18,10 +18,10 @@ describe("GET /api/fiat-rates", () => {
         ok: true,
         cached: false,
         provider: "okx",
-        base: "ETH",
+        base: "SOL",
         routes: {
-          usd: "ETH-USDC",
-          brl: "ETH-USDC * USDC-BRL",
+          usd: "SOL-USDC",
+          brl: "SOL-USDC * USDC-BRL",
         },
         rates: {
           usd: "2250.1",
@@ -43,10 +43,10 @@ describe("GET /api/fiat-rates", () => {
       ok: true,
       cached: false,
       provider: "okx",
-      base: "ETH",
+      base: "SOL",
       routes: {
-        usd: "ETH-USDC",
-        brl: "ETH-USDC * USDC-BRL",
+        usd: "SOL-USDC",
+        brl: "SOL-USDC * USDC-BRL",
       },
       rates: {
         usd: "2250.1",
@@ -68,7 +68,7 @@ describe("GET /api/fiat-rates", () => {
         ok: false,
         code: "FIAT_RATES_UNAVAILABLE",
         message:
-          "Could not fetch ETH fiat rates from OKX and no cached rates are available within max staleness.",
+          "Could not fetch SOL fiat rates from OKX and no cached rates are available within max staleness.",
         provider: "okx",
       },
     });
@@ -80,8 +80,9 @@ describe("GET /api/fiat-rates", () => {
       ok: false,
       code: "FIAT_RATES_UNAVAILABLE",
       message:
-        "Could not fetch ETH fiat rates from OKX and no cached rates are available within max staleness.",
+        "Could not fetch SOL fiat rates from OKX and no cached rates are available within max staleness.",
       provider: "okx",
     });
   });
 });
+

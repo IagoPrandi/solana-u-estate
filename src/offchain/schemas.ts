@@ -1,6 +1,6 @@
-import { isAddress, isHash } from "viem";
 import { z } from "zod";
 import { parseDecimalToUnits } from "@/lib/safe-decimal";
+import { isSolanaPublicKey, isSolanaSignature } from "@/lib/solana/config";
 
 const coordinateSchema = z
   .string()
@@ -21,7 +21,7 @@ const marketValueSchema = z
     } catch {
       return false;
     }
-  }, "Market value must be a valid ETH amount.");
+  }, "Market value must be a valid SOL amount.");
 
 export const mockDocumentTypeSchema = z.enum([
   "mock_deed",
@@ -43,7 +43,10 @@ export const propertyIntakeSchema = z.object({
   ownerWallet: z
     .string()
     .trim()
-    .refine((value) => isAddress(value), "Owner wallet must be a valid address."),
+    .refine(
+      (value) => isSolanaPublicKey(value),
+      "Owner wallet must be a valid Solana public key.",
+    ),
   marketValueEth: marketValueSchema,
   linkedValueBps: z.coerce
     .number()
@@ -80,7 +83,10 @@ export const propertyOnchainRegistrationInputSchema = z.object({
   txHash: z
     .string()
     .trim()
-    .refine((value) => isHash(value), "Transaction hash must be a valid hash."),
+    .refine(
+      (value) => isSolanaSignature(value),
+      "Transaction signature must be a valid Solana signature.",
+    ),
 });
 
 export const propertyMockVerificationInputSchema = z.object({
@@ -93,7 +99,10 @@ export const propertyMockVerificationInputSchema = z.object({
   txHash: z
     .string()
     .trim()
-    .refine((value) => isHash(value), "Transaction hash must be a valid hash."),
+    .refine(
+      (value) => isSolanaSignature(value),
+      "Transaction signature must be a valid Solana signature.",
+    ),
 });
 
 export const propertyTokenizationInputSchema = z.object({
@@ -106,11 +115,17 @@ export const propertyTokenizationInputSchema = z.object({
   txHash: z
     .string()
     .trim()
-    .refine((value) => isHash(value), "Transaction hash must be a valid hash."),
+    .refine(
+      (value) => isSolanaSignature(value),
+      "Transaction signature must be a valid Solana signature.",
+    ),
   valueTokenAddress: z
     .string()
     .trim()
-    .refine((value) => isAddress(value), "Value token address must be valid."),
+    .refine(
+      (value) => isSolanaPublicKey(value),
+      "Value token mint must be a valid Solana public key.",
+    ),
   usufructTokenId: z
     .string()
     .trim()
@@ -142,7 +157,10 @@ export const propertyPrimarySaleListingInputSchema = z.object({
   txHash: z
     .string()
     .trim()
-    .refine((value) => isHash(value), "Transaction hash must be a valid hash."),
+    .refine(
+      (value) => isSolanaSignature(value),
+      "Transaction signature must be a valid Solana signature.",
+    ),
   amount: z
     .string()
     .trim()
@@ -167,11 +185,17 @@ export const propertyPrimarySalePurchaseInputSchema = z.object({
   txHash: z
     .string()
     .trim()
-    .refine((value) => isHash(value), "Transaction hash must be a valid hash."),
+    .refine(
+      (value) => isSolanaSignature(value),
+      "Transaction signature must be a valid Solana signature.",
+    ),
   buyerWallet: z
     .string()
     .trim()
-    .refine((value) => isAddress(value), "Buyer wallet must be a valid address."),
+    .refine(
+      (value) => isSolanaPublicKey(value),
+      "Buyer wallet must be a valid Solana public key.",
+    ),
   amount: z
     .string()
     .trim()
@@ -196,7 +220,10 @@ export const propertyPrimarySaleCancellationInputSchema = z.object({
   txHash: z
     .string()
     .trim()
-    .refine((value) => isHash(value), "Transaction hash must be a valid hash."),
+    .refine(
+      (value) => isSolanaSignature(value),
+      "Transaction signature must be a valid Solana signature.",
+    ),
   amount: z
     .string()
     .trim()
@@ -359,7 +386,7 @@ export type FiatWarningCode =
 
 export type FiatRatesSnapshot = {
   provider: "okx";
-  base: "ETH";
+  base: "SOL";
   routes: Partial<Record<FiatCurrency, string>>;
   rates: Partial<Record<FiatCurrency, string>>;
   unavailable: FiatCurrency[];

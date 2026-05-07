@@ -1,65 +1,74 @@
 "use client";
 
-import { useMemo } from "react";
 import {
-  useAccount,
-  useBalance,
-  useConnect,
-  useDisconnect,
-  useSwitchChain,
-} from "wagmi";
-import { sepolia } from "wagmi/chains";
-import { formatUnitsSafe } from "@/lib/safe-decimal";
-import { propertyRegistryAddress } from "@/lib/contracts/property-registry";
+  useConnection,
+  useWallet as useSolanaWallet,
+} from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { useEffect, useState } from "react";
+import { solanaCluster, usufructProgramId } from "@/lib/solana/config";
 import { truncate } from "./data";
 import { IconNetwork } from "./icons";
 
 export type WalletState = ReturnType<typeof useWallet>;
 
 export function useWallet() {
-  const { address, chainId, isConnected } = useAccount();
-  const { connectors, connectAsync, isPending: isConnecting } = useConnect();
-  const { disconnect } = useDisconnect();
-  const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
-  const { data: balance } = useBalance({
-    address,
-    chainId: sepolia.id,
-    query: { enabled: Boolean(address) },
-  });
+  const { connection } = useConnection();
+  const wallet = useSolanaWallet();
+  const [balance, setBalance] = useState<string | null>(null);
+  const address = wallet.publicKey?.toBase58();
+  const onDevnet = solanaCluster === "devnet";
 
-  const injectedConnector = useMemo(
-    () => connectors.find((c) => c.type === "injected"),
-    [connectors],
-  );
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBalance() {
+      if (!wallet.publicKey) {
+        setBalance(null);
+        return;
+      }
+
+      const lamports = await connection.getBalance(wallet.publicKey, "confirmed");
+      if (!cancelled) {
+        setBalance(`${(lamports / LAMPORTS_PER_SOL).toFixed(4)} SOL`);
+      }
+    }
+
+    void loadBalance().catch(() => {
+      if (!cancelled) setBalance(null);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [connection, wallet.publicKey]);
 
   const connect = async () => {
-    if (!injectedConnector) return;
-    await connectAsync({ connector: injectedConnector });
+    if (!wallet.wallet) return;
+    await wallet.connect();
   };
 
   const switchToSepolia = async () => {
-    await switchChainAsync({ chainId: sepolia.id });
+    throw new Error("Network switching is handled by the Solana wallet adapter.");
   };
 
-  const onSepolia = chainId === sepolia.id;
-  const onchainEnabled = Boolean(propertyRegistryAddress);
+  const onchainEnabled = Boolean(usufructProgramId);
 
   return {
     address,
-    chainId,
-    isConnected,
-    onSepolia,
+    chainId: solanaCluster,
+    isConnected: wallet.connected,
+    onSepolia: onDevnet,
+    onDevnet,
     onchainEnabled,
-    canTransact: Boolean(address && isConnected && onSepolia && onchainEnabled),
-    balance: balance
-      ? `${formatUnitsSafe(balance.value, 18, 4)} ETH`
-      : null,
+    canTransact: Boolean(address && wallet.connected && onDevnet && onchainEnabled),
+    balance,
     connect,
-    disconnect,
+    disconnect: wallet.disconnect,
     switchToSepolia,
-    isConnecting,
-    isSwitching,
-    hasInjected: Boolean(injectedConnector),
+    isConnecting: wallet.connecting,
+    isSwitching: false,
+    hasInjected: wallet.wallets.length > 0,
   };
 }
 
@@ -74,15 +83,15 @@ export function WalletChip({ wallet }: { wallet: WalletState }) {
         disabled={!wallet.hasInjected || wallet.isConnecting}
       >
         {wallet.isConnecting
-          ? "Conectando…"
+          ? "Connecting..."
           : wallet.hasInjected
-            ? "Conectar carteira"
-            : "Sem carteira detectada"}
+            ? "Connect wallet"
+            : "No wallet detected"}
       </button>
     );
   }
 
-  if (!wallet.onSepolia) {
+  if (!wallet.onDevnet) {
     return (
       <button
         className="btn btn-neutral btn-sm"
@@ -90,20 +99,24 @@ export function WalletChip({ wallet }: { wallet: WalletState }) {
           void wallet.switchToSepolia();
         }}
         disabled={wallet.isSwitching}
-        title="A carteira precisa estar na rede Sepolia"
+        title="Wallet must use Solana Devnet"
       >
         <IconNetwork size={14} />{" "}
-        {wallet.isSwitching ? "Trocando…" : "Trocar para Sepolia"}
+        {wallet.isSwitching ? "Switching..." : "Use Solana Devnet"}
       </button>
     );
   }
 
   return (
-    <div className="wallet-chip" onClick={() => wallet.disconnect()} title="Desconectar carteira">
+    <div
+      className="wallet-chip"
+      onClick={() => wallet.disconnect()}
+      title="Disconnect wallet"
+    >
       <div className="wallet-chip-avatar" />
       <div>
         <div style={{ fontSize: 12, lineHeight: 1.1, fontWeight: 700 }}>
-          {wallet.balance ?? "Sepolia"}
+          {wallet.balance ?? "Solana Devnet"}
         </div>
         <div className="wallet-chip-mono">{truncate(wallet.address)}</div>
       </div>

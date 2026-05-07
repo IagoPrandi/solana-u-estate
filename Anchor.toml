@@ -1,0 +1,19 @@
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+usufruct_protocol = "7L4m3nKBzAprH6L18nXHngA1djPAmYYt1XZVu7RqW8V1"
+
+[programs.devnet]
+usufruct_protocol = "7L4m3nKBzAprH6L18nXHngA1djPAmYYt1XZVu7RqW8V1"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "./node_modules/.bin/ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

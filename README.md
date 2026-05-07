@@ -1,51 +1,57 @@
 # Usufruct Protocol
 
-Milestones `0.1`, `0.2`, and `0.3` establish the local hybrid Web2/Web3 baseline described in `PRD.md`.
+Solana migration workspace for the Usufruct Protocol Phase 0 demo.
 
-## What is included
+## What Is Included
 
 - Next.js 16 + TypeScript + Tailwind CSS 4
-- `wagmi` + `viem` wired to Sepolia
+- Solana Devnet environment wiring
+- Anchor workspace scaffold at `programs/usufruct_protocol`
 - Server-side `lowdb` persistence in `offchain-db/db.json`
-- Server-side OKX fiat pricing with timeout, cache, and fallback
-- Mock document intake with deterministic pre-save hashing preview
-- Deterministic hashing via stable JSON + `keccak256`
-- Dockerfile and `docker-compose.yml`
-- Foundry-oriented contract directory scaffold outside the app container
+- Server-side OKX SOL fiat pricing with timeout, cache, and stale fallback
+- Mock document intake with deterministic stable JSON + `keccak256` hashing
+- Legacy Ethereum/Sepolia code archived under `archive/ethereum-sepolia-phase0`
 
-## Local run
+## Local Run
 
 ```bash
 npm run dev
 ```
 
-## Docker run
+## Docker Run
 
 ```bash
 docker compose up --build
 ```
 
-Local app runtime reads `.env.app`. Deployment secrets stay outside container app in `.env.deploy`.
+App runtime reads `.env.app`. Deploy-only Solana settings stay in `.env.deploy`; keypairs/private keys must not enter the app container.
 
-## Foundry outside app container
+## Solana Setup
 
 ```powershell
-.\scripts\deploy-sepolia.ps1
+npm run solana:preflight
+npm run anchor:build
+npm run solana:deploy:devnet
 ```
 
-The wrapper runs `forge script` in dedicated Foundry container, not inside `app`.
+Required fixed tooling for milestone S1:
 
-## Fiat pricing route
+- Rust `1.91.1`
+- Solana CLI / Agave CLI `3.0.10`
+- Anchor CLI `0.32.1`
+- Node.js `24.10.0` or compatible Node 24 runtime
+
+## Fiat Pricing Route
 
 ```text
 GET /api/fiat-rates
 ```
 
-The route uses only OKX public endpoints server-side, with no private key. `SPOT` instruments use `GET /api/v5/market/ticker`, while `MARGIN`, `SWAP`, `FUTURES`, `OPTION`, and `EVENTS` instruments use `GET /api/v5/public/mark-price` as documented by OKX. The app ships with `ETH-USDC` and `USDC-BRL` as `SPOT`, stores the last valid snapshot in `lowdb`, and returns cached fallback rates when the provider is temporarily unavailable.
+The route uses only OKX public endpoints server-side, with no private key. The active base pair is `SOL-USDC`; `USDC-BRL` remains the BRL cross route.
 
-## Demo prep
+## Required Docs Opened For This Migration Pass
 
-- Runbook: [DEMO_RUNBOOK.md](./DEMO_RUNBOOK.md)
-- Preflight: `.\scripts\demo-preflight.ps1 -SellerAddress 0xSELLER -BuyerAddress 0xBUYER`
-- Optional `.env.app` demo addresses: `DEMO_SELLER_ADDRESS=...` and `DEMO_BUYER_ADDRESS=...`
-- Optional `.env.deploy` test accounts: `PERSON_A_ADDRESS=...` and `PERSON_B_ADDRESS=...`
+- `PRD_MIGRACAO_SOLANA_INCREMENTADO_V1_5.md`
+- `AGENTS.md`
+- `skills/best-practices/SKILL.md`
+- `skills/best-practices/references/agent-principles.md`

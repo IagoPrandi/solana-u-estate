@@ -33,7 +33,7 @@ type OkxPublicInstrument = {
 type FiatConfig = {
   provider: "okx";
   apiBaseUrl: string;
-  ethUsdcInstrument: OkxPublicInstrument;
+  solUsdcInstrument: OkxPublicInstrument;
   usdcBrlInstrument: OkxPublicInstrument;
   optionalCurrencies: Array<"eur" | "jpy">;
   optionalInstruments: Partial<Record<"eur" | "jpy", OkxPublicInstrument>>;
@@ -46,7 +46,7 @@ const RATE_SCALE = 8;
 const SUCCESS_STATUS = 200;
 const ERROR_STATUS = 503;
 const FIAT_RATES_ERROR_MESSAGE =
-  "Could not fetch ETH fiat rates from OKX and no cached rates are available within max staleness.";
+  "Could not fetch SOL fiat rates from OKX and no cached rates are available within max staleness.";
 
 export async function getFiatRates(
   options: GetFiatRatesOptions = {},
@@ -119,16 +119,16 @@ async function buildLiveSnapshot(
   fetchImpl: FetchLike,
   now: Date,
 ): Promise<FiatRatesSnapshot> {
-  const ethUsdRate = await fetchOkxPublicPrice(
-    config.ethUsdcInstrument,
+  const solUsdRate = await fetchOkxPublicPrice(
+    config.solUsdcInstrument,
     config,
     fetchImpl,
   );
   const routes: Partial<Record<FiatCurrency, string>> = {
-    usd: formatInstrumentRoute(config.ethUsdcInstrument),
+    usd: formatInstrumentRoute(config.solUsdcInstrument),
   };
   const rates: Partial<Record<FiatCurrency, string>> = {
-    usd: ethUsdRate,
+    usd: solUsdRate,
   };
   const unavailable: FiatCurrency[] = [];
   const optionalRates: FiatRatesSnapshot["optionalRates"] = {
@@ -143,8 +143,8 @@ async function buildLiveSnapshot(
       fetchImpl,
     );
 
-    routes.brl = `${formatInstrumentRoute(config.ethUsdcInstrument)} * ${formatInstrumentRoute(config.usdcBrlInstrument)}`;
-    rates.brl = multiplyDecimalStrings(ethUsdRate, usdcBrlRate, RATE_SCALE);
+    routes.brl = `${formatInstrumentRoute(config.solUsdcInstrument)} * ${formatInstrumentRoute(config.usdcBrlInstrument)}`;
+    rates.brl = multiplyDecimalStrings(solUsdRate, usdcBrlRate, RATE_SCALE);
   } catch {
     unavailable.push("brl");
   }
@@ -159,9 +159,9 @@ async function buildLiveSnapshot(
     try {
       const crossRate = await fetchOkxPublicPrice(instrument, config, fetchImpl);
 
-      routes[currency] = `${formatInstrumentRoute(config.ethUsdcInstrument)} * ${formatInstrumentRoute(instrument)}`;
+      routes[currency] = `${formatInstrumentRoute(config.solUsdcInstrument)} * ${formatInstrumentRoute(instrument)}`;
       optionalRates[currency] = multiplyDecimalStrings(
-        ethUsdRate,
+        solUsdRate,
         crossRate,
         RATE_SCALE,
       );
@@ -173,7 +173,7 @@ async function buildLiveSnapshot(
 
   return {
     provider: config.provider,
-    base: "ETH",
+    base: "SOL",
     routes,
     rates,
     unavailable,
@@ -304,9 +304,9 @@ function loadFiatConfig(): FiatConfig {
   return {
     provider: "okx",
     apiBaseUrl: process.env.OKX_API_BASE_URL ?? "https://www.okx.com",
-    ethUsdcInstrument: {
-      instId: process.env.OKX_ETH_USDC_INST_ID ?? "ETH-USDC",
-      instType: parseOkxInstType(process.env.OKX_ETH_USDC_INST_TYPE, "SPOT"),
+    solUsdcInstrument: {
+      instId: process.env.OKX_SOL_USDC_INST_ID ?? "SOL-USDC",
+      instType: parseOkxInstType(process.env.OKX_SOL_USDC_INST_TYPE, "SPOT"),
     },
     usdcBrlInstrument: {
       instId: process.env.OKX_USDC_BRL_INST_ID ?? "USDC-BRL",

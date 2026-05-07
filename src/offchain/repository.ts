@@ -1,8 +1,8 @@
 import "server-only";
 
-import { isAddress, type Address } from "viem";
 import { getDb } from "@/offchain/db";
 import { buildSavedPropertyRecord } from "@/offchain/property-draft";
+import { isSolanaPublicKey } from "@/lib/solana/config";
 import type {
   FiatRatesSnapshot,
   PropertyDraftInput,
@@ -19,11 +19,21 @@ const SECTION_32_DEMO_LOCAL_PROPERTY_ID = "32000000-0000-4000-8000-000000000032"
 const SECTION_32_DEMO_PROPERTY_ID = "32";
 const SECTION_32_DEMO_LISTING_ID = "32";
 const SECTION_32_DEMO_VALUE_TOKEN_ADDRESS =
-  "0x0000000000000000000000000000000000000032";
-const DEFAULT_DEMO_SELLER_ADDRESS: Address =
-  "0x1111111111111111111111111111111111111111";
-const DEFAULT_DEMO_BUYER_ADDRESS: Address =
-  "0x2222222222222222222222222222222222222222";
+  "11111111111111111111111111111112";
+const DEFAULT_DEMO_SELLER_ADDRESS =
+  "11111111111111111111111111111113";
+const DEFAULT_DEMO_BUYER_ADDRESS =
+  "11111111111111111111111111111114";
+const DEMO_SIGNATURE_1 =
+  "1111111111111111111111111111111111111111111111111111111111111111";
+const DEMO_SIGNATURE_2 =
+  "2222222222222222222222222222222222222222222222222222222222222222";
+const DEMO_SIGNATURE_3 =
+  "3333333333333333333333333333333333333333333333333333333333333333";
+const DEMO_SIGNATURE_4 =
+  "4444444444444444444444444444444444444444444444444444444444444444";
+const DEMO_SIGNATURE_5 =
+  "5555555555555555555555555555555555555555555555555555555555555555";
 
 export async function listPropertyDrafts() {
   const db = await getDb();
@@ -111,24 +121,21 @@ export async function seedSection32DemoScenario() {
     kind: "registration",
     localPropertyId: SECTION_32_DEMO_LOCAL_PROPERTY_ID,
     propertyId: SECTION_32_DEMO_PROPERTY_ID,
-    txHash:
-      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    txHash: DEMO_SIGNATURE_1,
   });
 
   await savePropertyMockVerification({
     kind: "mockVerification",
     localPropertyId: SECTION_32_DEMO_LOCAL_PROPERTY_ID,
     propertyId: SECTION_32_DEMO_PROPERTY_ID,
-    txHash:
-      "0x2222222222222222222222222222222222222222222222222222222222222222",
+    txHash: DEMO_SIGNATURE_2,
   });
 
   await savePropertyTokenization({
     kind: "tokenization",
     localPropertyId: SECTION_32_DEMO_LOCAL_PROPERTY_ID,
     propertyId: SECTION_32_DEMO_PROPERTY_ID,
-    txHash:
-      "0x3333333333333333333333333333333333333333333333333333333333333333",
+    txHash: DEMO_SIGNATURE_3,
     valueTokenAddress: SECTION_32_DEMO_VALUE_TOKEN_ADDRESS,
     usufructTokenId: SECTION_32_DEMO_PROPERTY_ID,
     linkedValueUnits: "200000",
@@ -140,8 +147,7 @@ export async function seedSection32DemoScenario() {
     localPropertyId: SECTION_32_DEMO_LOCAL_PROPERTY_ID,
     propertyId: SECTION_32_DEMO_PROPERTY_ID,
     listingId: SECTION_32_DEMO_LISTING_ID,
-    txHash:
-      "0x4444444444444444444444444444444444444444444444444444444444444444",
+    txHash: DEMO_SIGNATURE_4,
     amount: "300000",
     priceWei: "60000000000000000",
   });
@@ -151,8 +157,7 @@ export async function seedSection32DemoScenario() {
     localPropertyId: SECTION_32_DEMO_LOCAL_PROPERTY_ID,
     propertyId: SECTION_32_DEMO_PROPERTY_ID,
     listingId: SECTION_32_DEMO_LISTING_ID,
-    txHash:
-      "0x5555555555555555555555555555555555555555555555555555555555555555",
+    txHash: DEMO_SIGNATURE_5,
     buyerWallet,
     amount: "300000",
     priceWei: "60000000000000000",
@@ -533,8 +538,7 @@ export async function saveValidatorApproval(
   );
   if (!property) throw new Error("Property draft not found.");
 
-  const dummyHash =
-    "0x1111111111111111111111111111111111111111111111111111111111111111";
+  const dummyHash = DEMO_SIGNATURE_1;
   const now = new Date().toISOString();
 
   if (property.onchainRegistration) {
@@ -579,8 +583,7 @@ export async function saveValidatorRejection(
   );
   if (!property) throw new Error("Property draft not found.");
 
-  const dummyHash =
-    "0x2222222222222222222222222222222222222222222222222222222222222222";
+  const dummyHash = DEMO_SIGNATURE_2;
   const now = new Date().toISOString();
   const rejection = { reason: trimmedReason, rejectedAt: now };
 
@@ -614,11 +617,11 @@ export async function saveValidatorRejection(
 
 function resolveDemoWalletAddress(
   value: string | undefined,
-  fallback: Address,
-): Address {
+  fallback: string,
+): string {
   if (!value) {
     return fallback;
   }
 
-  return isAddress(value) ? value : fallback;
+  return isSolanaPublicKey(value) ? value : fallback;
 }

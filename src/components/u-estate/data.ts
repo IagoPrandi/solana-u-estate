@@ -1,9 +1,10 @@
 import type { Listing, Property, Transaction, User } from "./types";
 
 export const shortHash = () =>
-  "0x" +
-  Array.from({ length: 40 }, () =>
-    "0123456789abcdef"[Math.floor(Math.random() * 16)],
+  Array.from({ length: 64 }, () =>
+    "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"[
+      Math.floor(Math.random() * 58)
+    ],
   ).join("");
 
 export const truncate = (s: string | undefined, head = 6, tail = 4) =>
@@ -68,9 +69,9 @@ export const initialProperties: Property[] = [
     metadataHash: "0x9f3a7b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
     documentsHash: "0x1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
     locationHash: "0x2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d",
-    valueTokenAddress: "0xa1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+    valueTokenAddress: "11111111111111111111111111111112",
     usufructTokenId: "1",
-    ownerWallet: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    ownerWallet: "11111111111111111111111111111113",
     createdAt: "2026-04-12T10:00:00Z",
   },
   {
@@ -103,9 +104,9 @@ export const initialProperties: Property[] = [
     metadataHash: "0x3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e",
     documentsHash: "0x4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f",
     locationHash: "0x5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a",
-    valueTokenAddress: "0xb2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1",
+    valueTokenAddress: "11111111111111111111111111111112",
     usufructTokenId: "2",
-    ownerWallet: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    ownerWallet: "11111111111111111111111111111113",
     createdAt: "2026-04-18T15:30:00Z",
   },
   {
@@ -138,9 +139,9 @@ export const initialProperties: Property[] = [
     metadataHash: "0x6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b",
     documentsHash: "0x7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c",
     locationHash: "0x8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d",
-    valueTokenAddress: "0xc3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
+    valueTokenAddress: "11111111111111111111111111111112",
     usufructTokenId: "3",
-    ownerWallet: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    ownerWallet: "11111111111111111111111111111113",
     createdAt: "2026-03-22T08:00:00Z",
   },
   {
@@ -172,9 +173,9 @@ export const initialProperties: Property[] = [
     metadataHash: "0x9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e",
     documentsHash: "0x0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f",
     locationHash: "0x1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a",
-    valueTokenAddress: "0xd4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3",
+    valueTokenAddress: "11111111111111111111111111111112",
     usufructTokenId: "4",
-    ownerWallet: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    ownerWallet: "11111111111111111111111111111113",
     createdAt: "2026-04-25T12:00:00Z",
   },
 ];
@@ -185,30 +186,30 @@ export const initialListings: Listing[] = [
     propertyId: "1",
     amount: 240000,
     priceWei: "0.204",
-    seller: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    seller: "11111111111111111111111111111113",
     status: "Active",
     listedAt: "2026-04-22T10:00:00Z",
-    txHash: "0xa9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8",
+    txHash: "1111111111111111111111111111111111111111111111111111111111111111",
   },
   {
     listingId: "2",
     propertyId: "4",
     amount: 60000,
     priceWei: "0.0168",
-    seller: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    seller: "11111111111111111111111111111113",
     status: "Active",
     listedAt: "2026-04-26T14:00:00Z",
-    txHash: "0xb0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9",
+    txHash: "2222222222222222222222222222222222222222222222222222222222222222",
   },
   {
     listingId: "3",
     propertyId: "4",
     amount: 40000,
     priceWei: "0.0112",
-    seller: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    seller: "11111111111111111111111111111113",
     status: "Active",
     listedAt: "2026-04-27T09:00:00Z",
-    txHash: "0xc1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0",
+    txHash: "3333333333333333333333333333333333333333333333333333333333333333",
   },
 ];
 
@@ -220,7 +221,7 @@ export const initialTransactions: Transaction[] = [
     valueEth: null,
     status: "Confirmado",
     date: "2026-04-12T10:05:00Z",
-    txHash: "0xd2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1",
+    txHash: "4444444444444444444444444444444444444444444444444444444444444444",
   },
   {
     id: "t2",
@@ -229,7 +230,7 @@ export const initialTransactions: Transaction[] = [
     valueEth: null,
     status: "Confirmado",
     date: "2026-04-13T11:30:00Z",
-    txHash: "0xe3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2",
+    txHash: "5555555555555555555555555555555555555555555555555555555555555555",
   },
   {
     id: "t3",
@@ -238,7 +239,7 @@ export const initialTransactions: Transaction[] = [
     valueEth: null,
     status: "Confirmado",
     date: "2026-04-14T09:15:00Z",
-    txHash: "0xf4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3",
+    txHash: "6666666666666666666666666666666666666666666666666666666666666666",
   },
   {
     id: "t4",
@@ -247,7 +248,7 @@ export const initialTransactions: Transaction[] = [
     valueEth: null,
     status: "Confirmado",
     date: "2026-04-22T10:00:00Z",
-    txHash: "0xa5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4",
+    txHash: "7777777777777777777777777777777777777777777777777777777777777777",
   },
   {
     id: "t5",
@@ -256,7 +257,7 @@ export const initialTransactions: Transaction[] = [
     valueEth: "0.054",
     status: "Confirmado",
     date: "2026-04-24T16:42:00Z",
-    txHash: "0xb6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5",
+    txHash: "8888888888888888888888888888888888888888888888888888888888888888",
   },
   {
     id: "t6",
@@ -265,13 +266,13 @@ export const initialTransactions: Transaction[] = [
     valueEth: null,
     status: "Confirmado",
     date: "2026-04-19T14:00:00Z",
-    txHash: "0xc7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    txHash: "9999999999999999999999999999999999999999999999999999999999999999",
   },
 ];
 
 export const initialUser: User = {
-  wallet: "0x1f8a23b9c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
-  ensName: "pessoa-a.eth",
+  wallet: "11111111111111111111111111111113",
+  ensName: "",
   role: "owner",
-  network: "Sepolia",
+  network: "Solana Devnet",
 };

@@ -8,9 +8,23 @@
     "start": "dotenv -e .env.app -- next start",
     "lint": "eslint . --ignore-pattern bootstrap-app --ignore-pattern .next",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "anchor:build": "anchor build",
+    "anchor:test": "anchor test",
+    "anchor:build:docker": "powershell -ExecutionPolicy Bypass -File scripts/anchor-docker.ps1 -Command build",
+    "anchor:test:docker": "powershell -ExecutionPolicy Bypass -File scripts/anchor-docker.ps1 -Command test",
+    "anchor:deploy:devnet:docker": "powershell -ExecutionPolicy Bypass -File scripts/anchor-docker.ps1 -Command deploy-devnet",
+    "solana:import-deployer": "powershell -ExecutionPolicy Bypass -File scripts/import-solana-deployer.ps1",
+    "solana:preflight": "powershell -ExecutionPolicy Bypass -File scripts/solana-preflight.ps1",
+    "solana:deploy:devnet": "powershell -ExecutionPolicy Bypass -File scripts/deploy-solana-devnet.ps1"
   },
   "dependencies": {
+    "@noble/hashes": "1.8.0",
+    "@solana/spl-token": "0.4.14",
+    "@solana/wallet-adapter-base": "0.9.27",
+    "@solana/wallet-adapter-react": "0.15.39",
+    "@solana/wallet-adapter-react-ui": "0.9.39",
+    "@solana/web3.js": "1.98.4",
     "@tanstack/react-query": "^5.90.5",
     "decimal.js": "^10.6.0",
     "lowdb": "^7.0.1",
@@ -18,12 +32,12 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "server-only": "^0.0.1",
-    "viem": "^2.39.0",
-    "wagmi": "^2.19.5",
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@coral-xyz/anchor": "0.32.1",
     "@tailwindcss/postcss": "^4",
+    "@types/mocha": "10.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -31,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
+    "ts-mocha": "11.1.0",
     "typescript": "^5",
     "vitest": "^4.0.8"
   }

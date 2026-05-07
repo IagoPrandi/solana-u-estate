@@ -1,4 +1,4 @@
-import os from "node:os";
+﻿import os from "node:os";
 import path from "node:path";
 import { mkdir, rm } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -21,8 +21,8 @@ describe("getFiatRates", () => {
 
     process.env.LOCAL_DB_PATH = path.join(tempDir, "db.json");
     process.env.OKX_API_BASE_URL = "https://www.okx.com";
-    process.env.OKX_ETH_USDC_INST_ID = "ETH-USDC";
-    process.env.OKX_ETH_USDC_INST_TYPE = "SPOT";
+    process.env.OKX_SOL_USDC_INST_ID = "SOL-USDC";
+    process.env.OKX_SOL_USDC_INST_TYPE = "SPOT";
     process.env.OKX_USDC_BRL_INST_ID = "USDC-BRL";
     process.env.OKX_USDC_BRL_INST_TYPE = "SPOT";
     process.env.OKX_USDC_EUR_INST_ID = "";
@@ -53,7 +53,7 @@ describe("getFiatRates", () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = input.toString();
 
-      if (url.includes("ETH-USDC")) {
+      if (url.includes("SOL-USDC")) {
         return jsonResponse({
           code: "0",
           data: [{ last: "2250.10" }],
@@ -85,7 +85,7 @@ describe("getFiatRates", () => {
     expect(result.body.cached).toBe(false);
     expect(result.body.rates.usd).toBe("2250.1");
     expect(result.body.rates.brl).toBe("11475.51");
-    expect(result.body.routes.brl).toBe("ETH-USDC * USDC-BRL");
+    expect(result.body.routes.brl).toBe("SOL-USDC * USDC-BRL");
 
     const cache = await readFiatRatesCache();
     expect(cache.rates.usd).toBe("2250.1");
@@ -94,15 +94,15 @@ describe("getFiatRates", () => {
   });
 
   it("uses OKX mark price for non-SPOT instruments and ticker for SPOT instruments", async () => {
-    process.env.OKX_ETH_USDC_INST_ID = "ETH-USDT-SWAP";
-    process.env.OKX_ETH_USDC_INST_TYPE = "SWAP";
+    process.env.OKX_SOL_USDC_INST_ID = "SOL-USDT-SWAP";
+    process.env.OKX_SOL_USDC_INST_TYPE = "SWAP";
 
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = input.toString();
 
       if (url.includes("/api/v5/public/mark-price")) {
         expect(url).toContain("instType=SWAP");
-        expect(url).toContain("instId=ETH-USDT-SWAP");
+        expect(url).toContain("instId=SOL-USDT-SWAP");
 
         return jsonResponse({
           code: "0",
@@ -135,8 +135,8 @@ describe("getFiatRates", () => {
     expect(result.body.cached).toBe(false);
     expect(result.body.rates.usd).toBe("2000");
     expect(result.body.rates.brl).toBe("10200");
-    expect(result.body.routes.usd).toBe("SWAP:ETH-USDT-SWAP");
-    expect(result.body.routes.brl).toBe("SWAP:ETH-USDT-SWAP * USDC-BRL");
+    expect(result.body.routes.usd).toBe("SWAP:SOL-USDT-SWAP");
+    expect(result.body.routes.brl).toBe("SWAP:SOL-USDT-SWAP * USDC-BRL");
   });
 
   it("uses the cached snapshot within TTL without calling OKX again", async () => {
@@ -204,7 +204,7 @@ describe("getFiatRates", () => {
       ok: false,
       code: "FIAT_RATES_UNAVAILABLE",
       message:
-        "Could not fetch ETH fiat rates from OKX and no cached rates are available within max staleness.",
+        "Could not fetch SOL fiat rates from OKX and no cached rates are available within max staleness.",
       provider: "okx",
     });
   });
@@ -213,7 +213,7 @@ describe("getFiatRates", () => {
     const fetchImpl = vi.fn(async (input: string | URL | Request) => {
       const url = input.toString();
 
-      if (url.includes("ETH-USDC")) {
+      if (url.includes("SOL-USDC")) {
         return jsonResponse({
           code: "0",
           data: [{ last: "2250.10" }],
@@ -251,7 +251,7 @@ function okxFetchMock() {
   return vi.fn(async (input: string | URL | Request) => {
     const url = input.toString();
 
-    if (url.includes("ETH-USDC")) {
+    if (url.includes("SOL-USDC")) {
       return jsonResponse({
         code: "0",
         data: [{ last: "2250.10" }],
@@ -277,3 +277,4 @@ function jsonResponse(body: unknown) {
     },
   });
 }
+

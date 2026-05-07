@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 import {
   getWalletHoldingForProperty,
   getWalletHoldings,
@@ -32,15 +32,15 @@ const baseProperty: Property = {
   metadataHash: "0xmetadata",
   documentsHash: "0xdocuments",
   locationHash: "0xlocation",
-  ownerWallet: "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+  ownerWallet: "11111111111111111111111111111113",
   createdAt: "2026-05-05T00:00:00.000Z",
   buyerBalances: [
     {
-      buyerWallet: "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+      buyerWallet: "11111111111111111111111111111114",
       freeValueUnits: "5000",
       totalPaidWei: "5000000000000000",
       lastPurchaseTxHash:
-        "0x430f39e8e6313f672e4dd7883cb6c5822113a6c383ec0c43528205ab0dc8d835",
+        "7777777777777777777777777777777777777777777777777777777777777777",
       acquiredAt: "2026-05-05T00:16:39.041Z",
     },
   ],
@@ -50,11 +50,11 @@ describe("wallet holdings", () => {
   it("returns only investments bought by the connected wallet", () => {
     const personAHoldings = getWalletHoldings(
       [baseProperty],
-      "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+      "11111111111111111111111111111114",
     );
     const personBHoldings = getWalletHoldings(
       [baseProperty],
-      "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+      "11111111111111111111111111111113",
     );
 
     expect(personAHoldings).toHaveLength(1);
@@ -70,13 +70,13 @@ describe("wallet holdings", () => {
     expect(
       hasWalletHolding(
         baseProperty,
-        "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+        "11111111111111111111111111111114",
       ),
     ).toBe(true);
     expect(
       hasWalletHolding(
         baseProperty,
-        "0x0000000000000000000000000000000000000001",
+        "11111111111111111111111111111115",
       ),
     ).toBe(false);
   });
@@ -85,7 +85,7 @@ describe("wallet holdings", () => {
     expect(
       getWalletHoldingForProperty(
         baseProperty,
-        "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+        "11111111111111111111111111111114",
       ),
     ).toMatchObject({
       property: baseProperty,
@@ -95,8 +95,9 @@ describe("wallet holdings", () => {
     expect(
       getWalletHoldingForProperty(
         baseProperty,
-        "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+        "11111111111111111111111111111113",
       ),
     ).toBeUndefined();
   });
 });
+

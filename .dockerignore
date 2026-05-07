@@ -6,3 +6,7 @@ bootstrap-app
 contracts/out
 contracts/cache
 .git
+.env*
+archive
+target
+.anchor
