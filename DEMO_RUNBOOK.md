@@ -18,9 +18,10 @@ Run before deploy or demo work:
 
 ```powershell
 npm run solana:preflight
+npm run solana:demo:preflight
 ```
 
-The script checks:
+The scripts check:
 
 - Node version
 - Rust version
@@ -29,6 +30,25 @@ The script checks:
 - `.env.app` has no private key material
 - `.env.app` has no active EVM/Sepolia contract addresses
 - `.env.deploy` targets Devnet
+- Devnet RPC is configured
+- deployed program id is executable
+- demo wallets have the required minimum balance
+
+## Docker App
+
+Use the dedicated demo container, not the legacy app container:
+
+```powershell
+docker ps --filter "name=solana-u-estate-ms8-dev"
+```
+
+Expected app URL:
+
+```text
+http://127.0.0.1:3002
+```
+
+The existing `usufruct-protocol-app` / `hacknation-u_estate-app` container is not the active Solana demo container.
 
 ## Anchor Commands
 
@@ -39,6 +59,27 @@ npm run solana:deploy:devnet
 ```
 
 `anchor build`, `anchor test`, and `anchor deploy` require the fixed S1 tooling in `PRD_MIGRACAO_SOLANA_INCREMENTADO_V1_5.md`.
+
+## Demo Reset
+
+Prepare the local guided demo cache:
+
+```powershell
+npm run solana:demo:reset
+```
+
+This command is Devnet-only, backs up lowdb as `*.bak`, seeds the local guided demo through the app API, and does not delete keypairs or deploy artifacts.
+
+## Timed Devnet Smoke
+
+Run a timed on-chain purchase flow:
+
+```powershell
+$duration = Measure-Command { npm run solana:demo:preflight; npm run solana:smoke:ms6 }
+$duration.TotalSeconds
+```
+
+Acceptance target: under 300 seconds. Latest MS9 evidence: `13.1` seconds.
 
 ## Fallback Boundaries
 

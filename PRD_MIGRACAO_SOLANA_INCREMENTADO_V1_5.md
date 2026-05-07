@@ -3162,7 +3162,7 @@ Roadmap mínimo:
 - [x] BRL aparece quando rota disponível.
 - [x] Reset Devnet prepara demo limpa.
 - [x] Preflight valida program id, RPC, wallets e balances.
-- [ ] Demo roda em até 5 minutos.
+- [x] Demo roda em até 5 minutos.
 - [x] Fallback simulado não é contado como aceite on-chain.
 
 ### Testes
@@ -3183,47 +3183,47 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Rodar todos os testes Anchor.
-- [ ] Rodar todos os testes frontend.
-- [ ] Rodar testes de contas falsas.
-- [ ] Rodar testes de mint falso.
-- [ ] Rodar testes de ATA falsa.
-- [ ] Rodar testes de seller falso.
-- [ ] Rodar testes de stale lowdb.
-- [ ] Rodar demo completa em Devnet.
-- [ ] Validar fechamento de escrow.
-- [ ] Validar rent destino seller.
-- [ ] Validar commitment `confirmed`.
-- [ ] Validar reconciliação pós-demo.
-- [ ] Atualizar documentação de runbook.
+- [x] Rodar todos os testes Anchor.
+- [x] Rodar todos os testes frontend.
+- [x] Rodar testes de contas falsas.
+- [x] Rodar testes de mint falso.
+- [x] Rodar testes de ATA falsa.
+- [x] Rodar testes de seller falso.
+- [x] Rodar testes de stale lowdb.
+- [x] Rodar demo completa em Devnet.
+- [x] Validar fechamento de escrow.
+- [x] Validar rent destino seller.
+- [x] Validar commitment `confirmed`.
+- [x] Validar reconciliação pós-demo.
+- [x] Atualizar documentação de runbook.
 
 ### Critérios de aprovação
 
-- [ ] Fluxo completo funciona em Devnet.
-- [ ] Todos os testes P0 passam.
-- [ ] Mint authority removida após tokenização.
-- [ ] Freeze authority ausente.
-- [ ] Token program SPL clássico validado.
-- [ ] Associated Token Program validado.
-- [ ] `InvalidAssociatedTokenProgram` implementado e testado.
-- [ ] Eventos Anchor mínimos emitidos e testados.
-- [ ] `UsufructPosition.active` nasce `true` e permanece inalterado.
-- [ ] `ListingAccount` permanece aberta após compra/cancelamento.
-- [ ] Escrow usa ATA da EscrowAuthority.
-- [ ] lowdb usa escrita serializada.
-- [ ] Nenhuma dependência Ethereum ativa permanece.
-- [ ] Escrow não fica com saldo após compra/cancelamento.
-- [ ] Estado lowdb reconcilia com on-chain.
-- [ ] Demo final mostra Pessoa A com usufruto e valor vinculado, e Pessoa B apenas com valor livre.
+- [x] Fluxo completo funciona em Devnet.
+- [x] Todos os testes P0 passam.
+- [x] Mint authority removida após tokenização.
+- [x] Freeze authority ausente.
+- [x] Token program SPL clássico validado.
+- [x] Associated Token Program validado.
+- [x] `InvalidAssociatedTokenProgram` implementado e testado.
+- [x] Eventos Anchor mínimos emitidos e testados.
+- [x] `UsufructPosition.active` nasce `true` e permanece inalterado.
+- [x] `ListingAccount` permanece aberta após compra/cancelamento.
+- [x] Escrow usa ATA da EscrowAuthority.
+- [x] lowdb usa escrita serializada.
+- [x] Nenhuma dependência Ethereum ativa permanece.
+- [x] Escrow não fica com saldo após compra/cancelamento.
+- [x] Estado lowdb reconcilia com on-chain.
+- [x] Demo final mostra Pessoa A com usufruto e valor vinculado, e Pessoa B apenas com valor livre.
 
 ### Testes
 
-- [ ] Teste end-to-end localnet.
-- [ ] Teste end-to-end Devnet.
-- [ ] Testes adversariais de contas.
-- [ ] Testes de recovery/reconciliação.
-- [ ] Testes de reset demo.
-- [ ] Testes de regressão da UI.
+- [x] Teste end-to-end localnet.
+- [x] Teste end-to-end Devnet.
+- [x] Testes adversariais de contas.
+- [x] Testes de recovery/reconciliação.
+- [x] Testes de reset demo.
+- [x] Testes de regressão da UI.
 
 ---
 
@@ -3351,47 +3351,47 @@ Fluxo completo:
 
 A migração para Solana está pronta quando:
 
-- [ ] Stack Ethereum foi arquivada e removida do caminho ativo.
-- [ ] App conecta wallet Solana Devnet.
-- [ ] Programa Anchor está deployado na Devnet.
-- [ ] `ProtocolState` inicializado.
-- [ ] Registro de imóvel funciona.
-- [ ] Mock verification funciona.
-- [ ] Tokenização SPL funciona.
-- [ ] `UsufructPosition` funciona.
-- [ ] Mint SPL usa `decimals = 0`.
-- [ ] Mint authority está definida conforme PRD.
-- [ ] Listings múltiplas funcionam.
-- [ ] Escrow PDA funciona.
-- [ ] Compra exige `expected_price_lamports`.
-- [ ] Compra transfere SOL para seller.
-- [ ] Compra transfere tokens para buyer.
-- [ ] Escrow fecha após compra/cancelamento.
-- [ ] Rent volta para seller.
-- [ ] lowdb usa formato base58/hex/string definido.
-- [ ] lowdb inclui `LocalSolanaListing` e `LocalSolanaTransaction`.
-- [ ] Offsets de `getProgramAccounts` vêm de módulo único compartilhado e são testados.
-- [ ] Reconciliação local/on-chain funciona.
-- [ ] Testes de contas falsas passam.
-- [ ] Testes de mint falso passam.
-- [ ] Testes de ATA falsa passam.
-- [ ] Testes de seller falso passam.
-- [ ] Testes de rollback por falha de CPI passam.
-- [ ] Preflight de saldo SOL do buyer/seller funciona.
-- [ ] API de cotação usa SOL.
-- [ ] Demo reset Devnet funciona.
-- [ ] Demo completa roda em até 5 minutos.
-- [ ] Todos os testes P0 passam.
-- [ ] Mint authority removida após tokenização.
-- [ ] Freeze authority ausente.
-- [ ] Token program SPL clássico validado.
-- [ ] Associated Token Program validado.
-- [ ] `InvalidAssociatedTokenProgram` implementado e testado.
-- [ ] Eventos Anchor mínimos emitidos e testados.
-- [ ] `UsufructPosition.active` nasce `true` e permanece inalterado.
-- [ ] `ListingAccount` permanece aberta após compra/cancelamento.
-- [ ] Escrow usa ATA da EscrowAuthority.
-- [ ] lowdb usa escrita serializada.
+- [x] Stack Ethereum foi arquivada e removida do caminho ativo.
+- [x] App conecta wallet Solana Devnet.
+- [x] Programa Anchor está deployado na Devnet.
+- [x] `ProtocolState` inicializado.
+- [x] Registro de imóvel funciona.
+- [x] Mock verification funciona.
+- [x] Tokenização SPL funciona.
+- [x] `UsufructPosition` funciona.
+- [x] Mint SPL usa `decimals = 0`.
+- [x] Mint authority está definida conforme PRD.
+- [x] Listings múltiplas funcionam.
+- [x] Escrow PDA funciona.
+- [x] Compra exige `expected_price_lamports`.
+- [x] Compra transfere SOL para seller.
+- [x] Compra transfere tokens para buyer.
+- [x] Escrow fecha após compra/cancelamento.
+- [x] Rent volta para seller.
+- [x] lowdb usa formato base58/hex/string definido.
+- [x] lowdb inclui `LocalSolanaListing` e `LocalSolanaTransaction`.
+- [x] Offsets de `getProgramAccounts` vêm de módulo único compartilhado e são testados.
+- [x] Reconciliação local/on-chain funciona.
+- [x] Testes de contas falsas passam.
+- [x] Testes de mint falso passam.
+- [x] Testes de ATA falsa passam.
+- [x] Testes de seller falso passam.
+- [x] Testes de rollback por falha de CPI passam.
+- [x] Preflight de saldo SOL do buyer/seller funciona.
+- [x] API de cotação usa SOL.
+- [x] Demo reset Devnet funciona.
+- [x] Demo completa roda em até 5 minutos.
+- [x] Todos os testes P0 passam.
+- [x] Mint authority removida após tokenização.
+- [x] Freeze authority ausente.
+- [x] Token program SPL clássico validado.
+- [x] Associated Token Program validado.
+- [x] `InvalidAssociatedTokenProgram` implementado e testado.
+- [x] Eventos Anchor mínimos emitidos e testados.
+- [x] `UsufructPosition.active` nasce `true` e permanece inalterado.
+- [x] `ListingAccount` permanece aberta após compra/cancelamento.
+- [x] Escrow usa ATA da EscrowAuthority.
+- [x] lowdb usa escrita serializada.
 
 ---
 
