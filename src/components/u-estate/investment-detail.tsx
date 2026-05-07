@@ -70,18 +70,18 @@ function ChartCard({
       <div className="row-between mb-16">
         <div>
           <div className="text-xs" style={{ opacity: 0.55, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
-            Market chart
+            Gráfico de mercado
           </div>
           <div className="fw-800 text-xl mt-12 mono">{assetTicker(property)}/SOL</div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="fw-800 text-xl mono">{currentvalueEth.toFixed(6)} SOL</div>
           <div className="text-xs fw-700" style={{ color: up ? "var(--color-success)" : "var(--color-danger)" }}>
-            {up ? "+" : ""}{(((current - previous) / Math.max(previous, 0.000001)) * 100).toFixed(2)}% last tick
+            {up ? "+" : ""}{(((current - previous) / Math.max(previous, 0.000001)) * 100).toFixed(2)}% último tick
           </div>
         </div>
       </div>
-      <svg viewBox="0 0 600 260" style={{ width: "100%", height: 280, display: "block" }} role="img" aria-label="Asset price chart">
+      <svg viewBox="0 0 600 260" style={{ width: "100%", height: 280, display: "block" }} role="img" aria-label="Gráfico de preço do ativo">
         <defs>
           <linearGradient id="asset-area" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="#f18b2b" stopOpacity="0.35" />
@@ -114,15 +114,15 @@ function ChartCard({
       </svg>
       <div className="grid-3 mt-16">
         <div>
-          <div className="muted text-xs">24h volume</div>
+          <div className="muted text-xs">Volume 24h</div>
           <div className="fw-800 mono mt-12">{(holding.costEth * 0.36).toFixed(5)} SOL</div>
         </div>
         <div>
-          <div className="muted text-xs">Pool depth</div>
+          <div className="muted text-xs">Profundidade do pool</div>
           <div className="fw-800 mono mt-12">{(Number(property.marketValueEth) * 0.08).toFixed(4)} SOL</div>
         </div>
         <div>
-          <div className="muted text-xs">Oracle value</div>
+          <div className="muted text-xs">Valor do oráculo</div>
           <div className="fw-800 mono mt-12">{Number(property.marketValueEth).toFixed(4)} SOL</div>
         </div>
       </div>
@@ -145,9 +145,9 @@ export function InvestmentDetailPage({
     return (
       <div className="page">
         <EmptyState
-          title="Investment not found"
-          sub="This wallet does not hold an economic position for the selected asset."
-          actionLabel="Back to portfolio"
+          title="Investimento não encontrado"
+          sub="Esta carteira não possui uma posição econômica para o ativo selecionado."
+          actionLabel="Voltar ao portfólio"
           onAction={() => navigate("portfolio")}
         />
       </div>
@@ -176,16 +176,16 @@ export function InvestmentDetailPage({
       <PageHeader
         crumb={
           <>
-            <a onClick={() => navigate("portfolio")}>My investments</a>
+            <a onClick={() => navigate("portfolio")}>Meus investimentos</a>
             <span>/</span>
             <span>{assetTicker(property)}</span>
           </>
         }
-        title={`${assetTicker(property)} asset view`}
-        subtitle={`${property.city}, ${property.state} - economic value token`}
+        title={`${assetTicker(property)} visão do ativo`}
+        subtitle={`${property.city}, ${property.state} - token de valor econômico`}
         actions={
           <button className="btn btn-neutral" onClick={() => navigate("marketplace")}>
-            Find liquidity <IconArrowRight size={14} />
+            Encontrar liquidez <IconArrowRight size={14} />
           </button>
         }
       />
@@ -193,14 +193,14 @@ export function InvestmentDetailPage({
       <div className="grid-3 mb-32">
         <div className="card card-pad">
           <div className="muted text-xs" style={{ textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
-            Current value
+            Valor atual
           </div>
           <div className="fw-800 text-2xl mono mt-12">{currentvalueEth.toFixed(6)} SOL</div>
           <div className="muted text-sm">≈ {formatUsd(currentvalueEth)}</div>
         </div>
         <div className="card card-pad">
           <div className="muted text-xs" style={{ textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
-            Unrealized PnL
+            PnL não realizado
           </div>
           <div className="fw-800 text-2xl mono mt-12" style={{ color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
             {pnl >= 0 ? "+" : ""}{pnl.toFixed(6)} SOL
@@ -209,10 +209,10 @@ export function InvestmentDetailPage({
         </div>
         <div className="card card-pad">
           <div className="muted text-xs" style={{ textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
-            Position size
+            Tamanho da posição
           </div>
           <div className="fw-800 text-2xl mono mt-12">{ownershipPct.toFixed(4)}%</div>
-          <div className="muted text-sm">{formatUnits(holding.units)} units</div>
+          <div className="muted text-sm">{formatUnits(holding.units)} unidades</div>
         </div>
       </div>
 
@@ -224,31 +224,31 @@ export function InvestmentDetailPage({
             <div className="row-between mb-16">
               <div>
                 <div className="text-xs muted" style={{ textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
-                  Asset fundamentals
+                  Fundamentos do ativo
                 </div>
                 <h3 style={{ margin: "10px 0 0", fontSize: 20, fontWeight: 800 }}>
-                  Basic property and token data
+                  Dados básicos do imóvel e do token
                 </h3>
               </div>
               <IconShield size={22} />
             </div>
             <div className="grid-2">
               <div className="text-sm">
-                <div className="muted">Location</div>
+                <div className="muted">Localização</div>
                 <div className="fw-700 mt-12 row row-gap-sm">
                   <IconMapPin size={14} /> {property.city}, {property.state}
                 </div>
               </div>
               <div className="text-sm">
-                <div className="muted">Market valuation</div>
+                <div className="muted">Avaliação de mercado</div>
                 <div className="fw-700 mt-12 mono">{Number(property.marketValueEth).toFixed(6)} SOL</div>
               </div>
               <div className="text-sm">
-                <div className="muted">Free-value supply</div>
-                <div className="fw-700 mt-12 mono">{formatUnits(property.freeValueUnits)} units</div>
+                <div className="muted">Oferta de valor livre</div>
+                <div className="fw-700 mt-12 mono">{formatUnits(property.freeValueUnits)} unidades</div>
               </div>
               <div className="text-sm">
-                <div className="muted">Sold free value</div>
+                <div className="muted">Valor livre vendido</div>
                 <div className="fw-700 mt-12 mono">{freeSoldPct.toFixed(2)}%</div>
               </div>
             </div>
@@ -258,24 +258,24 @@ export function InvestmentDetailPage({
         <div className="col col-gap-lg">
           <div className="card card-pad-lg">
             <div className="row-between">
-              <div className="fw-800 text-lg">Your position</div>
+              <div className="fw-800 text-lg">Sua posição</div>
               <IconCoins size={20} />
             </div>
             <div className="col col-gap mt-24">
               <div className="row-between text-sm">
-                <span className="muted">Entry cost</span>
+                <span className="muted">Custo de entrada</span>
                 <strong className="mono">{holding.costEth.toFixed(6)} SOL</strong>
               </div>
               <div className="row-between text-sm">
-                <span className="muted">Current value</span>
+                <span className="muted">Valor atual</span>
                 <strong className="mono">{currentvalueEth.toFixed(6)} SOL</strong>
               </div>
               <div className="row-between text-sm">
-                <span className="muted">Acquired</span>
-                <strong>{new Date(holding.acquiredAt).toLocaleDateString("en-US")}</strong>
+                <span className="muted">Adquirido</span>
+                <strong>{new Date(holding.acquiredAt).toLocaleDateString()}</strong>
               </div>
               <div className="row-between text-sm">
-                <span className="muted">Last tx</span>
+                <span className="muted">Última tx</span>
                 <HashChip hash={holding.lastPurchaseTxHash} />
               </div>
             </div>
@@ -283,21 +283,21 @@ export function InvestmentDetailPage({
 
           <div className="card card-pad-lg">
             <div className="row-between">
-              <div className="fw-800 text-lg">Market depth</div>
+              <div className="fw-800 text-lg">Profundidade de mercado</div>
               <IconTrending size={20} />
             </div>
             <div className="col col-gap mt-24">
               <div className="row-between text-sm">
-                <span className="muted">Active liquidity</span>
+                <span className="muted">Liquidez ativa</span>
                 <strong className="mono">{activeLiquidity.toFixed(6)} SOL</strong>
               </div>
               <div className="row-between text-sm">
-                <span className="muted">Active units</span>
+                <span className="muted">Unidades ativas</span>
                 <strong className="mono">{formatUnits(activeUnits)}</strong>
               </div>
               <div className="row-between text-sm">
-                <span className="muted">Bid/ask model</span>
-                <strong>Primary sale only</strong>
+                <span className="muted">Modelo bid/ask</span>
+                <strong>Apenas venda primária</strong>
               </div>
             </div>
             <div className="mt-24" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -319,22 +319,22 @@ export function InvestmentDetailPage({
           </div>
 
           <div className="card card-pad-lg">
-            <div className="fw-800 text-lg">Token references</div>
+            <div className="fw-800 text-lg">Referências do token</div>
             <div className="col col-gap mt-24">
               <div>
-                <div className="muted text-xs">Value token</div>
+                <div className="muted text-xs">Token de valor</div>
                 <div className="mono text-sm mt-12">
-                  {property.valueTokenAddress ? truncate(property.valueTokenAddress, 10, 8) : "Not synced"}
+                  {property.valueTokenAddress ? truncate(property.valueTokenAddress, 10, 8) : "Não sincronizado"}
                 </div>
               </div>
               <div>
-                <div className="muted text-xs">Owner wallet</div>
+                <div className="muted text-xs">Carteira do proprietário</div>
                 <div className="mono text-sm mt-12">
-                  {property.ownerWallet ? truncate(property.ownerWallet, 10, 8) : "Unknown"}
+                  {property.ownerWallet ? truncate(property.ownerWallet, 10, 8) : "Desconhecido"}
                 </div>
               </div>
               <button className="btn btn-neutral w-100" onClick={() => navigate("transactions")}>
-                View activity <IconExternal size={14} />
+                Ver atividade <IconExternal size={14} />
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { MouseEvent } from "react";
 import {
   IconArrowRight,
   IconBuilding,
@@ -42,6 +43,14 @@ const heroCopy = {
   },
 } as const;
 
+function scrollToLandingSection(
+  event: MouseEvent<HTMLAnchorElement>,
+  sectionId: string,
+) {
+  event.preventDefault();
+  document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+}
+
 export function LandingPage({
   navigate,
   setRole,
@@ -62,10 +71,12 @@ export function LandingPage({
   return (
     <div className="landing">
       <div className="landing-nav">
-        <div
+        <button
+          type="button"
           className="row row-gap"
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", padding: 0 }}
           onClick={() => navigate("landing")}
+          aria-label="Go to landing page"
         >
           <div
             style={{
@@ -86,12 +97,12 @@ export function LandingPage({
             />
           </div>
           <div className="fw-800 text-xl">u-estate</div>
-        </div>
+        </button>
         <div className="landing-nav-links">
-          <a onClick={(e) => { e.preventDefault(); document.getElementById("publico")?.scrollIntoView({ behavior: "smooth" }); }}>Para quem</a>
-          <a onClick={(e) => { e.preventDefault(); document.getElementById("como")?.scrollIntoView({ behavior: "smooth" }); }}>Como funciona</a>
-          <a onClick={(e) => { e.preventDefault(); document.getElementById("direitos")?.scrollIntoView({ behavior: "smooth" }); }}>Os dois direitos</a>
-          <a onClick={(e) => { e.preventDefault(); document.getElementById("beneficios")?.scrollIntoView({ behavior: "smooth" }); }}>Benefícios</a>
+          <a href="#publico" onClick={(e) => scrollToLandingSection(e, "publico")}>Para quem</a>
+          <a href="#como" onClick={(e) => scrollToLandingSection(e, "como")}>Como funciona</a>
+          <a href="#direitos" onClick={(e) => scrollToLandingSection(e, "direitos")}>Os dois direitos</a>
+          <a href="#beneficios" onClick={(e) => scrollToLandingSection(e, "beneficios")}>Benefícios</a>
         </div>
         <div className="row row-gap">
           <LanguageToggle compact />
@@ -105,12 +116,13 @@ export function LandingPage({
             <IconShield size={14} /> Validadores
           </a>
           <button
+            type="button"
             className="btn btn-ghost btn-sm"
             onClick={() => navigate("learn")}
           >
             Saiba mais
           </button>
-          <button className="btn btn-primary btn-sm" onClick={enterAsBuyer}>
+          <button type="button" className="btn btn-primary btn-sm" onClick={enterAsBuyer}>
             Entrar no app <IconArrowRight size={14} />
           </button>
         </div>
@@ -139,10 +151,10 @@ export function LandingPage({
             {copy.subtitleTail}
           </p>
           <div className="hero-cta">
-            <button className="btn btn-primary btn-lg" onClick={enterAsBuyer}>
+            <button type="button" className="btn btn-primary btn-lg" onClick={enterAsBuyer}>
               Quero investir <IconArrowRight size={16} />
             </button>
-            <button className="btn btn-neutral btn-lg" onClick={enterAsOwner}>
+            <button type="button" className="btn btn-neutral btn-lg" onClick={enterAsOwner}>
               Tenho um imóvel
             </button>
           </div>
@@ -287,7 +299,7 @@ export function LandingPage({
                 <span>Diversifique entre vários imóveis</span>
               </li>
             </ul>
-            <button className="btn btn-primary w-100" onClick={enterAsBuyer}>
+            <button type="button" className="btn btn-primary w-100" onClick={enterAsBuyer}>
               Explorar imóveis <IconArrowRight size={16} />
             </button>
           </div>
@@ -316,7 +328,7 @@ export function LandingPage({
                 <span>Receba SOL direto na sua carteira</span>
               </li>
             </ul>
-            <button className="btn btn-neutral w-100" onClick={enterAsOwner}>
+            <button type="button" className="btn btn-neutral w-100" onClick={enterAsOwner}>
               Cadastrar imóvel <IconArrowRight size={16} />
             </button>
           </div>
@@ -494,10 +506,10 @@ export function LandingPage({
             a infraestrutura on-chain já está pronta para você.
           </p>
           <div className="row row-gap" style={{ justifyContent: "center" }}>
-            <button className="btn btn-primary btn-lg" onClick={enterAsBuyer}>
+            <button type="button" className="btn btn-primary btn-lg" onClick={enterAsBuyer}>
               Explorar marketplace <IconArrowRight size={16} />
             </button>
-            <button className="btn btn-neutral btn-lg" onClick={enterAsOwner}>
+            <button type="button" className="btn btn-neutral btn-lg" onClick={enterAsOwner}>
               Cadastrar meu imóvel
             </button>
           </div>
@@ -507,9 +519,19 @@ export function LandingPage({
       <footer className="footer">
         <div>© 2026 u-estate · Hackathon prototype</div>
         <div className="row row-gap-lg">
-          <a>Termos</a>
-          <a>Privacidade</a>
-          <a>GitHub</a>
+          <button type="button" className="link-button" onClick={() => navigate("learn")}>
+            Como funciona
+          </button>
+          <a href="/validator" target="_blank" rel="noopener noreferrer">
+            Validadores
+          </a>
+          <a
+            href="https://github.com/IagoPrandi/solana-u-estate"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
         </div>
       </footer>
     </div>

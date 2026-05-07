@@ -424,7 +424,7 @@ export function UEstateApp() {
       if (actions.ready) {
         if (!listing.localPropertyId || listing.localPropertyId !== localId) {
           throw new Error(
-            "Esta oferta nao esta vinculada ao registro on-chain local atual. Atualize os dados antes de comprar.",
+            "Esta oferta não está vinculada ao registro on-chain local atual. Atualize os dados antes de comprar.",
           );
         }
         const record = await actions.buyListing(
