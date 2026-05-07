@@ -2831,40 +2831,40 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Implementar `ProtocolState`.
-- [ ] Implementar `PropertyAccount`.
-- [ ] Implementar `UsufructPosition`.
-- [ ] Implementar `ListingAccount`.
-- [ ] Implementar enums.
-- [ ] Implementar `ErrorCode` completo, incluindo `InvalidAssociatedTokenProgram`.
-- [ ] Implementar eventos Anchor mínimos e payloads esperados.
-- [ ] Implementar constantes `SPACE`.
-- [ ] Implementar `reserved: [u8; 32]` nas contas principais.
-- [ ] Implementar seeds de todas as PDAs.
-- [ ] Salvar bumps.
-- [ ] Documentar que `ProtocolState` é demo-only.
-- [ ] Documentar que testes paralelos devem isolar ou serializar acesso ao `ProtocolState`.
+- [x] Implementar `ProtocolState`.
+- [x] Implementar `PropertyAccount`.
+- [x] Implementar `UsufructPosition`.
+- [x] Implementar `ListingAccount`.
+- [x] Implementar enums.
+- [x] Implementar `ErrorCode` completo, incluindo `InvalidAssociatedTokenProgram`.
+- [x] Implementar eventos Anchor mínimos e payloads esperados.
+- [x] Implementar constantes `SPACE`.
+- [x] Implementar `reserved: [u8; 32]` nas contas principais.
+- [x] Implementar seeds de todas as PDAs.
+- [x] Salvar bumps.
+- [x] Documentar que `ProtocolState` é demo-only.
+- [x] Documentar que testes paralelos devem isolar ou serializar acesso ao `ProtocolState`.
 
 ### Critérios de aprovação
 
-- [ ] Contas são criadas com `space` correto.
-- [ ] Seeds são determinísticas.
-- [ ] Bumps são salvos e usados.
-- [ ] Erros esperados são retornados.
-- [ ] Eventos Anchor mínimos são emitidos com payload correto.
+- [x] Contas são criadas com `space` correto.
+- [x] Seeds são determinísticas.
+- [x] Bumps são salvos e usados.
+- [x] Erros esperados são retornados.
+- [x] Eventos Anchor mínimos são emitidos com payload correto.
 
 ### Testes
 
-- [ ] Derivação de `ProtocolState`.
-- [ ] Derivação de `PropertyAccount`.
-- [ ] Derivação de `UsufructPosition`.
-- [ ] Derivação de `ListingAccount`.
-- [ ] Derivação de `EscrowAuthority`.
-- [ ] Falha com PDA falsa.
-- [ ] Falha com bump incorreto.
-- [ ] Teste de `space` mínimo.
-- [ ] Teste que falha quando `SPACE` declarado fica incompatível com o tamanho serializado da struct.
-- [ ] Testes paralelos usam program id/ProtocolState isolado ou rodam serializados.
+- [x] Derivação de `ProtocolState`.
+- [x] Derivação de `PropertyAccount`.
+- [x] Derivação de `UsufructPosition`.
+- [x] Derivação de `ListingAccount`.
+- [x] Derivação de `EscrowAuthority`.
+- [x] Falha com PDA falsa.
+- [x] Falha com bump incorreto.
+- [x] Teste de `space` mínimo.
+- [x] Teste que falha quando `SPACE` declarado fica incompatível com o tamanho serializado da struct.
+- [x] Testes paralelos usam program id/ProtocolState isolado ou rodam serializados.
 
 ---
 

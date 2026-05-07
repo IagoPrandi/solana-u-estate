@@ -45,13 +45,19 @@ case "$ANCHOR_TOOL_COMMAND" in
       echo "ANCHOR_WALLET is required for Devnet deploy." >&2
       exit 1
     fi
+    if [ -z "${USUFRUCT_PROGRAM_ID:-}" ]; then
+      echo "USUFRUCT_PROGRAM_ID is required for Devnet deploy." >&2
+      exit 1
+    fi
     if [ ! -f "$ANCHOR_WALLET" ]; then
       echo "ANCHOR_WALLET file not found: $ANCHOR_WALLET" >&2
       exit 1
     fi
     export ANCHOR_PROVIDER_URL="${ANCHOR_PROVIDER_URL:-https://api.devnet.solana.com}"
     anchor build
-    anchor deploy --provider.cluster devnet --provider.wallet "$ANCHOR_WALLET"
+    anchor deploy --no-idl --provider.cluster devnet --provider.wallet "$ANCHOR_WALLET"
+    anchor idl close "$USUFRUCT_PROGRAM_ID" --provider.cluster devnet --provider.wallet "$ANCHOR_WALLET" || true
+    anchor idl init "$USUFRUCT_PROGRAM_ID" --filepath target/idl/usufruct_protocol.json --provider.cluster devnet --provider.wallet "$ANCHOR_WALLET"
     ;;
   *)
     echo "Unknown command: $ANCHOR_TOOL_COMMAND" >&2
