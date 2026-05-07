@@ -16,7 +16,8 @@
     "anchor:deploy:devnet:docker": "powershell -ExecutionPolicy Bypass -File scripts/anchor-docker.ps1 -Command deploy-devnet",
     "solana:import-deployer": "powershell -ExecutionPolicy Bypass -File scripts/import-solana-deployer.ps1",
     "solana:preflight": "powershell -ExecutionPolicy Bypass -File scripts/solana-preflight.ps1",
-    "solana:deploy:devnet": "powershell -ExecutionPolicy Bypass -File scripts/deploy-solana-devnet.ps1"
+    "solana:deploy:devnet": "powershell -ExecutionPolicy Bypass -File scripts/deploy-solana-devnet.ps1",
+    "solana:smoke:ms3": "dotenv -e .env.deploy -- node scripts/smoke-ms3-devnet.mjs"
   },
   "dependencies": {
     "@noble/hashes": "1.8.0",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@coral-xyz/anchor": "0.32.1",
     "@tailwindcss/postcss": "^4",
+    "@types/bn.js": "^5.2.0",
     "@types/mocha": "10.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
