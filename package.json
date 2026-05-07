@@ -21,7 +21,9 @@
     "solana:smoke:ms4": "dotenv -e .env.deploy -- node scripts/smoke-ms4-devnet.mjs",
     "solana:smoke:ms5": "dotenv -e .env.deploy -- node scripts/smoke-ms5-devnet.mjs",
     "solana:smoke:ms6": "dotenv -e .env.deploy -- node scripts/smoke-ms6-devnet.mjs",
-    "solana:smoke:ms7": "dotenv -e .env.deploy -- node scripts/smoke-ms7-devnet.mjs"
+    "solana:smoke:ms7": "dotenv -e .env.deploy -- node scripts/smoke-ms7-devnet.mjs",
+    "solana:demo:preflight": "node scripts/preflight-devnet-demo.mjs",
+    "solana:demo:reset": "node scripts/reset-devnet-demo.mjs"
   },
   "dependencies": {
     "@noble/hashes": "1.8.0",

@@ -29,6 +29,7 @@ import type {
   PropertyDocument,
   TxStep,
 } from "./types";
+import { isTxPending } from "./transaction-guards";
 
 type ValueCurrency = "SOL" | "usdc" | "usdt";
 
@@ -186,6 +187,7 @@ export function PropertyNewPage({
   });
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const txPending = isTxPending(tx.open, tx.step);
 
   // File input refs per document type
   const deedRef = useRef<HTMLInputElement>(null);
@@ -259,6 +261,7 @@ export function PropertyNewPage({
 
   const submit = async () => {
     setErrorMessage(null);
+    if (txPending) return;
     setTx({ open: true, step: "sign" });
     try {
       const created = await actions.submitProperty(
@@ -751,6 +754,7 @@ export function PropertyNewPage({
           >
             <button
               className="btn btn-ghost"
+              disabled={txPending}
               onClick={() =>
                 step === 0 ? navigate("properties") : setStep((s) => s - 1)
               }
@@ -760,7 +764,7 @@ export function PropertyNewPage({
             {step < 3 ? (
               <button
                 className="btn btn-primary"
-                disabled={!canNext()}
+                disabled={txPending || !canNext()}
                 onClick={() => setStep((s) => s + 1)}
               >
                 Continuar <IconArrowRight size={14} />
@@ -768,6 +772,7 @@ export function PropertyNewPage({
             ) : (
               <button
                 className="btn btn-primary"
+                disabled={txPending}
                 onClick={() => {
                   void submit();
                 }}

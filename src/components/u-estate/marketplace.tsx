@@ -25,6 +25,7 @@ import {
   ValueSplit,
 } from "./ui";
 import { listingIdentity } from "./listing-identity";
+import { isTxPending } from "./transaction-guards";
 import type {
   Listing,
   Navigate,
@@ -334,6 +335,7 @@ export function ListingDetailPage({
     step: "sign",
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const txPending = isTxPending(tx.open, tx.step);
 
   if (!listing || !property)
     return (
@@ -368,6 +370,7 @@ export function ListingDetailPage({
 
   const start = async () => {
     setErrorMessage(null);
+    if (txPending) return;
     if (buyDisabledMessage) {
       setErrorMessage(buyDisabledMessage);
       return;
@@ -676,7 +679,7 @@ export function ListingDetailPage({
                 max={listing.amount}
                 step="1000"
                 value={selectedUnits}
-                disabled={actions.ready}
+                disabled={actions.ready || txPending}
                 onChange={(e) => setUnits(Number(e.target.value))}
               />
               <div className="row-between text-xs muted mt-12">
@@ -742,7 +745,7 @@ export function ListingDetailPage({
 
             <button
               className="btn btn-primary btn-lg w-100 mt-24"
-              disabled={buyDisabled}
+              disabled={buyDisabled || txPending}
               onClick={() => {
                 void start();
               }}

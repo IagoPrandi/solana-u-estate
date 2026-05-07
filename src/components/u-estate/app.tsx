@@ -711,6 +711,23 @@ export function UEstateApp() {
           wallet={wallet}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
         />
+        {!chainMode && (
+          <div
+            className="card card-pad"
+            style={{
+              margin: "0 32px 16px",
+              background: "var(--color-warning-soft)",
+              borderColor: "var(--color-warning)",
+              color: "var(--color-warning)",
+            }}
+          >
+            <div className="text-sm fw-700">Local simulation mode</div>
+            <div className="text-sm mt-12">
+              This view is not on-chain acceptance. Final demo acceptance
+              requires Solana Devnet signatures and on-chain reconciliation.
+            </div>
+          </div>
+        )}
         {renderPage()}
       </div>
     </div>

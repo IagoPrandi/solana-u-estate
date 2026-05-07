@@ -3092,50 +3092,50 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Remover wagmi/viem da UI ativa.
-- [ ] Adicionar Solana Wallet Adapter.
-- [ ] Conectar wallet Solana.
-- [ ] Detectar Devnet.
-- [ ] Derivar PDAs no frontend.
-- [ ] Converter hashes hex para `[u8; 32]`.
-- [ ] Converter lamports string para `bigint`.
-- [ ] Persistir public keys base58.
-- [ ] Persistir signatures base58.
-- [ ] Persistir sync status.
-- [ ] Implementar lock/serialização de escrita lowdb.
-- [ ] Validar que Fase 0 roda com uma única instância backend.
-- [ ] Implementar schemas `LocalSolanaListing` e `LocalSolanaTransaction`.
-- [ ] Implementar módulo único compartilhado de offsets para `getProgramAccounts`.
-- [ ] Implementar reconciliação antes de ações críticas.
-- [ ] Implementar filtros mínimos de `getProgramAccounts` para propriedades, usufrutos e listings.
-- [ ] Bloquear double-submit em transações críticas.
-- [ ] Implementar preflight de saldo SOL para seller e buyer antes do wallet prompt.
-- [ ] Atualizar dashboard para SOL.
-- [ ] Exibir `admin` e `mock_verifier` em área técnica/admin read-only, sem ações de alteração.
-- [ ] Atualizar marketplace.
+- [x] Remover wagmi/viem da UI ativa.
+- [x] Adicionar Solana Wallet Adapter.
+- [x] Conectar wallet Solana.
+- [x] Detectar Devnet.
+- [x] Derivar PDAs no frontend.
+- [x] Converter hashes hex para `[u8; 32]`.
+- [x] Converter lamports string para `bigint`.
+- [x] Persistir public keys base58.
+- [x] Persistir signatures base58.
+- [x] Persistir sync status.
+- [x] Implementar lock/serialização de escrita lowdb.
+- [x] Validar que Fase 0 roda com uma única instância backend.
+- [x] Implementar schemas `LocalSolanaListing` e `LocalSolanaTransaction`.
+- [x] Implementar módulo único compartilhado de offsets para `getProgramAccounts`.
+- [x] Implementar reconciliação antes de ações críticas.
+- [x] Implementar filtros mínimos de `getProgramAccounts` para propriedades, usufrutos e listings.
+- [x] Bloquear double-submit em transações críticas.
+- [x] Implementar preflight de saldo SOL para seller e buyer antes do wallet prompt.
+- [x] Atualizar dashboard para SOL.
+- [x] Exibir `admin` e `mock_verifier` em área técnica/admin read-only, sem ações de alteração.
+- [x] Atualizar marketplace.
 
 ### Critérios de aprovação
 
-- [ ] Usuário conecta wallet Solana.
-- [ ] Usuário registra imóvel.
-- [ ] Usuário verifica mock.
-- [ ] Usuário tokeniza.
-- [ ] Usuário cria listing.
-- [ ] Outro usuário compra.
-- [ ] lowdb é atualizado após confirmações.
-- [ ] Divergências on-chain/local são detectadas.
+- [x] Usuário conecta wallet Solana.
+- [x] Usuário registra imóvel.
+- [x] Usuário verifica mock.
+- [x] Usuário tokeniza.
+- [x] Usuário cria listing.
+- [x] Outro usuário compra.
+- [x] lowdb é atualizado após confirmações.
+- [x] Divergências on-chain/local são detectadas.
 
 ### Testes
 
-- [ ] Testes unitários de conversão base58.
-- [ ] Testes unitários de hash hex ↔ bytes.
-- [ ] Testes de escrita concorrente no lowdb.
-- [ ] Testes de reconciliação listing stale.
-- [ ] Testes de reconciliação mint divergente.
-- [ ] Testes de buyer/seller wallet scoping.
-- [ ] Testes que validam offsets usados no frontend contra layout serializado.
-- [ ] Testes de UI para estado `stale`.
-- [ ] Testes de double-submit para tokenização, criação de listing, compra e cancelamento.
+- [x] Testes unitários de conversão base58.
+- [x] Testes unitários de hash hex ↔ bytes.
+- [x] Testes de escrita concorrente no lowdb.
+- [x] Testes de reconciliação listing stale.
+- [x] Testes de reconciliação mint divergente.
+- [x] Testes de buyer/seller wallet scoping.
+- [x] Testes que validam offsets usados no frontend contra layout serializado.
+- [x] Testes de UI para estado `stale`.
+- [x] Testes de double-submit para tokenização, criação de listing, compra e cancelamento.
 
 ---
 
@@ -3145,35 +3145,35 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Trocar ETH por SOL na API de fiat.
-- [ ] Consultar `SOL-USDC`.
-- [ ] Manter `USDC-BRL` runtime.
-- [ ] Atualizar cache lowdb.
-- [ ] Atualizar UI para SOL/USD/BRL.
-- [ ] Criar script de reset Devnet.
-- [ ] Criar script de preflight Devnet.
-- [ ] Validar balances de Person A e Person B.
-- [ ] Criar seed de demo local.
-- [ ] Criar fallback de demo sem transação real com banner obrigatório e separado do aceite on-chain.
+- [x] Trocar ETH por SOL na API de fiat.
+- [x] Consultar `SOL-USDC`.
+- [x] Manter `USDC-BRL` runtime.
+- [x] Atualizar cache lowdb.
+- [x] Atualizar UI para SOL/USD/BRL.
+- [x] Criar script de reset Devnet.
+- [x] Criar script de preflight Devnet.
+- [x] Validar balances de Person A e Person B.
+- [x] Criar seed de demo local.
+- [x] Criar fallback de demo sem transação real com banner obrigatório e separado do aceite on-chain.
 
 ### Critérios de aprovação
 
-- [ ] UI mostra valores em SOL e USD.
-- [ ] BRL aparece quando rota disponível.
-- [ ] Reset Devnet prepara demo limpa.
-- [ ] Preflight valida program id, RPC, wallets e balances.
+- [x] UI mostra valores em SOL e USD.
+- [x] BRL aparece quando rota disponível.
+- [x] Reset Devnet prepara demo limpa.
+- [x] Preflight valida program id, RPC, wallets e balances.
 - [ ] Demo roda em até 5 minutos.
-- [ ] Fallback simulado não é contado como aceite on-chain.
+- [x] Fallback simulado não é contado como aceite on-chain.
 
 ### Testes
 
-- [ ] API sucesso SOL-USDC.
-- [ ] API fallback cache.
-- [ ] API BRL indisponível sem bloquear SOL/USD.
-- [ ] Reset não roda em Mainnet.
-- [ ] Reset não apaga keypairs.
-- [ ] Preflight falha sem program id.
-- [ ] Preflight falha sem balance mínimo.
+- [x] API sucesso SOL-USDC.
+- [x] API fallback cache.
+- [x] API BRL indisponível sem bloquear SOL/USD.
+- [x] Reset não roda em Mainnet.
+- [x] Reset não apaga keypairs.
+- [x] Preflight falha sem program id.
+- [x] Preflight falha sem balance mínimo.
 
 ---
 

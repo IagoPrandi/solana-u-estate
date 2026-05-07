@@ -29,6 +29,7 @@ import {
   tokenizePropertyIx,
 } from "@/lib/solana/instructions";
 import { patchOnchainSync } from "./onchain";
+import { assertFreshPrimarySalePurchase } from "./transaction-guards";
 
 export type NewPropertyForm = {
   marketValueEth: string;
@@ -296,15 +297,6 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
         (item) => item.listingId === listingId,
       );
       if (!onchain || !listing) throw new Error("Primary sale listing is not saved locally.");
-      if (BigInt(amount) !== BigInt(listing.amount)) {
-        throw new Error("On-chain primary sale requires buying the full listing amount.");
-      }
-      if (priceWei !== BigInt(listing.priceWei)) {
-        throw new Error("Stale listing price. Refresh before buying.");
-      }
-      if (publicKey.toBase58().toLowerCase() === record.ownerWallet.toLowerCase()) {
-        throw new Error("Buyer wallet must differ from seller wallet.");
-      }
       const valueMint = new PublicKey(onchain.valueTokenAddress ?? "");
       const buyerTokenAccount = getAssociatedTokenAddressSync(
         valueMint,
@@ -322,9 +314,19 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
       const listingAccount = property
         ? await fetchListingAccount(connection, property.address, BigInt(listingId))
         : null;
-      if (!listingAccount || listingAccount.status !== "Active") {
+      if (!listingAccount) {
         throw new Error("Listing is not active on-chain.");
       }
+      assertFreshPrimarySalePurchase({
+        localListing: listing,
+        chainListing: listingAccount,
+        chainProperty: property,
+        requestedAmount: BigInt(amount),
+        requestedPriceLamports: priceWei,
+        buyerWallet: publicKey,
+        sellerWallet: record.ownerWallet,
+        expectedValueMint: valueMint,
+      });
       const { instructions } = buyPrimarySaleListingIxs({
         propertyId,
         listingId: BigInt(listingId),

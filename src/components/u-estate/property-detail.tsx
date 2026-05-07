@@ -32,6 +32,7 @@ import type {
   TxStep,
 } from "./types";
 import type { WalletState } from "./wallet";
+import { isTxPending } from "./transaction-guards";
 
 function ownerJourney(p: Property) {
   return [
@@ -106,6 +107,7 @@ export function PropertyDetailPage({
     title: string;
   }>({ open: false, step: "sign", title: "" });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const txPending = isTxPending(tx.open, tx.step);
   void chainMode;
 
   const runChainAction = async (
@@ -113,6 +115,7 @@ export function PropertyDetailPage({
     fn: (onStep: (s: TxStep) => void) => Promise<unknown>,
   ) => {
     setErrorMessage(null);
+    if (txPending) return;
     setTx({ open: true, step: "sign", title });
     try {
       await fn((s) => setTx((prev) => ({ ...prev, step: s })));
@@ -188,7 +191,7 @@ export function PropertyDetailPage({
           <>
             <StatusPill status={p.status} />
             {isOwner && primary &&
-              (primary.disabled ? (
+              (primary.disabled || txPending ? (
                 <button className="btn btn-neutral" disabled>
                   <IconClock size={14} /> {primary.label}
                 </button>
@@ -479,6 +482,7 @@ export function PropertyDetailPage({
                         {isOwner && l.status === "Active" && (
                           <button
                             className="btn btn-ghost btn-sm"
+                            disabled={txPending}
                             style={{
                               color: "var(--color-danger)",
                               padding: "4px 10px",
@@ -714,6 +718,7 @@ export function PropertyDetailPage({
               </div>
               <button
                 className="btn btn-primary w-100 mt-16"
+                disabled={txPending}
                 onClick={() =>
                   void runChainAction("Tokenizando imóvel", (onStep) =>
                     actions.tokenizeProperty(p.id, p.propertyId, onStep),
@@ -1008,6 +1013,7 @@ export function PropertyPublishPage({
     step: "sign",
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const txPending = isTxPending(tx.open, tx.step);
 
   if (!property) return null;
   const p = property;
@@ -1019,6 +1025,7 @@ export function PropertyPublishPage({
 
   const start = async () => {
     setErrorMessage(null);
+    if (txPending) return;
     setTx({ open: true, step: "sign" });
     try {
       await actions.publishListing(
@@ -1096,6 +1103,7 @@ export function PropertyPublishPage({
               max={Math.floor(maxPctOfProperty)}
               step="1"
               value={pctOfProperty}
+              disabled={txPending}
               onChange={(e) => setPctOfProperty(Number(e.target.value))}
             />
             <div className="row-between text-xs muted">
@@ -1193,6 +1201,7 @@ export function PropertyPublishPage({
                 <button
                   key={days}
                   className={"btn " + (duration === days ? "btn-primary" : "btn-neutral")}
+                  disabled={txPending}
                   onClick={() => setDuration(days)}
                 >
                   {label}
@@ -1247,12 +1256,14 @@ export function PropertyPublishPage({
           >
             <button
               className="btn btn-ghost"
+              disabled={txPending}
               onClick={() => navigate("property", { id: p.id })}
             >
               Cancelar
             </button>
             <button
               className="btn btn-primary btn-lg"
+              disabled={txPending}
               onClick={() => {
                 void start();
               }}

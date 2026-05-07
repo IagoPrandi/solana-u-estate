@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, type GetProgramAccountsFilter } from "@solana/web3.js";
 import { usufructProgramId } from "@/lib/solana/config";
 import {
   ACCOUNT_SPACE,
@@ -73,6 +73,17 @@ export type DecodedListingAccount = {
   amount: bigint;
   priceLamports: bigint;
   status: SolanaSaleStatus;
+  bump: number;
+};
+
+export type DecodedUsufructPositionAccount = {
+  address: PublicKey;
+  property: PublicKey;
+  propertyId: bigint;
+  holder: PublicKey;
+  linkedValueUnits: bigint;
+  linkedValueBps: number;
+  active: boolean;
   bump: number;
 };
 
@@ -215,6 +226,22 @@ export function decodeListingAccount(
   };
 }
 
+export function decodeUsufructPositionAccount(
+  address: PublicKey,
+  data: Buffer,
+): DecodedUsufructPositionAccount {
+  return {
+    address,
+    property: pubkeyAt(data, USUFRUCT_POSITION_OFFSETS.property),
+    propertyId: u64At(data, USUFRUCT_POSITION_OFFSETS.propertyId),
+    holder: pubkeyAt(data, USUFRUCT_POSITION_OFFSETS.holder),
+    linkedValueUnits: u64At(data, USUFRUCT_POSITION_OFFSETS.linkedValueUnits),
+    linkedValueBps: data.readUInt16LE(USUFRUCT_POSITION_OFFSETS.linkedValueBps),
+    active: data[USUFRUCT_POSITION_OFFSETS.active] === 1,
+    bump: data[USUFRUCT_POSITION_OFFSETS.bump],
+  };
+}
+
 export async function fetchProtocolState(connection: Connection) {
   const address = protocolStatePda();
   const account = await connection.getAccountInfo(address, "confirmed");
@@ -240,23 +267,45 @@ export async function fetchListingAccount(
   return account ? decodeListingAccount(address, Buffer.from(account.data)) : null;
 }
 
-export async function getProgramPropertyAccounts(connection: Connection) {
+export async function getProgramPropertyAccounts(
+  connection: Connection,
+  filters: GetProgramAccountsFilter[] = [],
+) {
   const accounts = await connection.getProgramAccounts(requireUsufructProgramId(), {
     commitment: "confirmed",
-    filters: [{ dataSize: ACCOUNT_SPACE.property }],
+    filters: [{ dataSize: ACCOUNT_SPACE.property }, ...filters],
   });
   return accounts.map((account) =>
     decodePropertyAccount(account.pubkey, Buffer.from(account.account.data)),
   );
 }
 
-export async function getProgramListingAccounts(connection: Connection) {
+export async function getProgramListingAccounts(
+  connection: Connection,
+  filters: GetProgramAccountsFilter[] = [],
+) {
   const accounts = await connection.getProgramAccounts(requireUsufructProgramId(), {
     commitment: "confirmed",
-    filters: [{ dataSize: ACCOUNT_SPACE.listing }],
+    filters: [{ dataSize: ACCOUNT_SPACE.listing }, ...filters],
   });
   return accounts.map((account) =>
     decodeListingAccount(account.pubkey, Buffer.from(account.account.data)),
+  );
+}
+
+export async function getProgramUsufructPositionAccounts(
+  connection: Connection,
+  filters: GetProgramAccountsFilter[] = [],
+) {
+  const accounts = await connection.getProgramAccounts(requireUsufructProgramId(), {
+    commitment: "confirmed",
+    filters: [{ dataSize: ACCOUNT_SPACE.usufructPosition }, ...filters],
+  });
+  return accounts.map((account) =>
+    decodeUsufructPositionAccount(
+      account.pubkey,
+      Buffer.from(account.account.data),
+    ),
   );
 }
 
