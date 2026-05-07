@@ -1,4 +1,4 @@
-import { weiToEthDecimalString } from "@/lib/safe-decimal";
+import { lamportsToSolDecimal } from "@/lib/solana/instructions";
 import type { SavedPropertyRecord } from "@/offchain/schemas";
 import type {
   Listing,
@@ -62,7 +62,7 @@ export function recordToProperty(record: SavedPropertyRecord): Property {
     lat: record.location.lat,
     lng: record.location.lng,
     description: record.description ?? "",
-    marketValueEth: weiToEthDecimalString(record.marketValueWei, 8),
+    marketValueEth: lamportsToSolDecimal(BigInt(record.marketValueWei), 8),
     linkedValueBps: record.linkedValueBps,
     totalValueUnits,
     linkedValueUnits,
@@ -103,7 +103,7 @@ export function recordsToListings(records: SavedPropertyRecord[]): Listing[] {
         localPropertyId: record.localPropertyId,
         propertyId: onchain.propertyId,
         amount: Number(l.amount),
-        priceWei: weiToEthDecimalString(l.priceWei, 18),
+        priceWei: lamportsToSolDecimal(BigInt(l.priceWei), 9),
         seller: record.ownerWallet,
         status: l.status,
         listedAt: l.listedAt,
@@ -174,7 +174,7 @@ export function recordsToTransactions(
         ownerWallet: record.ownerWallet,
         sellerWallet: record.ownerWallet,
         propertyTitle: title,
-        valueEth: weiToEthDecimalString(l.priceWei, 8),
+        valueEth: lamportsToSolDecimal(BigInt(l.priceWei), 8),
         status: "Confirmado",
         date: l.listedAt,
         txHash: l.txHash,
@@ -189,7 +189,7 @@ export function recordsToTransactions(
           sellerWallet: record.ownerWallet,
           buyerWallet: l.buyerWallet,
           propertyTitle: title,
-          valueEth: weiToEthDecimalString(l.priceWei, 8),
+          valueEth: lamportsToSolDecimal(BigInt(l.priceWei), 8),
           status: "Confirmado",
           date: l.purchasedAt,
           txHash: l.purchaseTxHash,

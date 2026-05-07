@@ -30,15 +30,15 @@ import type {
   TxStep,
 } from "./types";
 
-type ValueCurrency = "eth" | "usdc" | "usdt";
+type ValueCurrency = "SOL" | "usdc" | "usdt";
 
-const ETH_RATE = 2350; // USD per ETH
+const SOL_RATE = 2350; // USD per SOL
 
-function toEth(raw: string, currency: ValueCurrency): string {
+function toSOL(raw: string, currency: ValueCurrency): string {
   const n = Number(raw);
   if (!raw || isNaN(n) || n <= 0) return "";
-  if (currency === "eth") return raw;
-  return (n / ETH_RATE).toFixed(6);
+  if (currency === "SOL") return raw;
+  return (n / SOL_RATE).toFixed(6);
 }
 
 export function PropertiesPage({
@@ -175,7 +175,7 @@ export function PropertyNewPage({
     postalCode: "",
     lat: "",
     lng: "",
-    valueCurrency: "eth",
+    valueCurrency: "SOL",
     marketValueInput: "",
     reservedPct: 20,
     documents: [],
@@ -247,7 +247,7 @@ export function PropertyNewPage({
     },
   ];
 
-  const marketValueEth = toEth(data.marketValueInput, data.valueCurrency);
+  const marketValueEth = toSOL(data.marketValueInput, data.valueCurrency);
 
   const canNext = () => {
     if (step === 0)
@@ -297,7 +297,7 @@ export function PropertyNewPage({
   };
 
   const currencyLabels: Record<ValueCurrency, string> = {
-    eth: "ETH",
+    SOL: "SOL",
     usdc: "USDC",
     usdt: "USDT",
   };
@@ -305,15 +305,15 @@ export function PropertyNewPage({
   const currencyHelp = () => {
     const n = Number(data.marketValueInput);
     if (!data.marketValueInput || isNaN(n) || n <= 0) {
-      if (data.valueCurrency === "eth")
-        return "Valor de mercado estimado em ETH.";
+      if (data.valueCurrency === "SOL")
+        return "Valor de mercado estimado em SOL.";
       return `Valor de mercado estimado em ${currencyLabels[data.valueCurrency]} (1:1 com USD).`;
     }
-    if (data.valueCurrency === "eth") {
+    if (data.valueCurrency === "SOL") {
       return `Equivalente: ${formatUsd(data.marketValueInput)} · ${formatBrl(data.marketValueInput)}`;
     }
-    const eth = Number(marketValueEth);
-    return `≈ ${eth.toFixed(6)} ETH · ${formatBrl(eth)}`;
+    const SOL = Number(marketValueEth);
+    return `≈ ${SOL.toFixed(6)} SOL · ${formatBrl(SOL)}`;
   };
 
   return (
@@ -386,7 +386,7 @@ export function PropertyNewPage({
                 <label className="field-label">Avaliação do imóvel</label>
                 <div className="col col-gap-sm">
                   <div className="currency-selector">
-                    {(["eth", "usdc", "usdt"] as ValueCurrency[]).map((c) => (
+                    {(["SOL", "usdc", "usdt"] as ValueCurrency[]).map((c) => (
                       <button
                         key={c}
                         className={"currency-btn" + (data.valueCurrency === c ? " active" : "")}
@@ -401,8 +401,8 @@ export function PropertyNewPage({
                     <input
                       className="input mono"
                       type="number"
-                      step={data.valueCurrency === "eth" ? "0.001" : "1000"}
-                      placeholder={data.valueCurrency === "eth" ? "0.000" : "200000"}
+                      step={data.valueCurrency === "SOL" ? "0.001" : "1000"}
+                      placeholder={data.valueCurrency === "SOL" ? "0.000" : "200000"}
                       value={data.marketValueInput}
                       onChange={(e) => update("marketValueInput", e.target.value)}
                     />
@@ -658,8 +658,8 @@ export function PropertyNewPage({
                   <div className="mono fw-700 text-lg">
                     {data.marketValueInput || "0"} {currencyLabels[data.valueCurrency]}
                   </div>
-                  {data.valueCurrency !== "eth" && marketValueEth && (
-                    <div className="muted text-xs">≈ {marketValueEth} ETH</div>
+                  {data.valueCurrency !== "SOL" && marketValueEth && (
+                    <div className="muted text-xs">≈ {marketValueEth} SOL</div>
                   )}
                 </div>
                 <div
@@ -683,7 +683,7 @@ export function PropertyNewPage({
                         (100 - data.reservedPct)) /
                       100
                     ).toFixed(3)}{" "}
-                    ETH
+                    SOL
                   </div>
                   <div className="muted text-sm">
                     se você ofertar 100% da parte disponível
@@ -812,10 +812,10 @@ export function PropertyNewPage({
               <div className="fw-800 text-xl mono">
                 {data.marketValueInput || "0.000"} {currencyLabels[data.valueCurrency]}
               </div>
-              {data.marketValueInput && data.valueCurrency !== "eth" && (
-                <div className="muted text-sm">≈ {marketValueEth} ETH</div>
+              {data.marketValueInput && data.valueCurrency !== "SOL" && (
+                <div className="muted text-sm">≈ {marketValueEth} SOL</div>
               )}
-              {data.marketValueInput && data.valueCurrency === "eth" && (
+              {data.marketValueInput && data.valueCurrency === "SOL" && (
                 <div className="muted text-sm">
                   ≈ {formatUsd(data.marketValueInput)}
                 </div>

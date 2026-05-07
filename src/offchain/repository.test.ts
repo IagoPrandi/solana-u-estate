@@ -104,6 +104,29 @@ describe("property drafts", () => {
     expect(drafts[0].localPropertyId).toBe(record.localPropertyId);
   });
 
+  it("serializes concurrent lowdb writes without losing property drafts", async () => {
+    const ids = [
+      "4bbf258c-d4d7-40dd-a16d-ee5320cd3f91",
+      "4bbf258c-d4d7-40dd-a16d-ee5320cd3f92",
+      "4bbf258c-d4d7-40dd-a16d-ee5320cd3f93",
+    ];
+
+    await Promise.all(
+      ids.map((localPropertyId, index) =>
+        createPropertyDraft({
+          ...createInput(),
+          localPropertyId,
+          street: `Rua ${index}`,
+        }),
+      ),
+    );
+
+    const drafts = await listPropertyDrafts();
+    expect(drafts.map((draft) => draft.localPropertyId).sort()).toEqual(
+      [...ids].sort(),
+    );
+  });
+
   it("persists the on-chain property id after registration confirmation", async () => {
     const record = await createPropertyDraft(createInput());
 
@@ -238,7 +261,7 @@ describe("property drafts", () => {
       txHash:
         "4444444444444444444444444444444444444444444444444444444444444444",
       amount: "300000",
-      priceWei: "3000000000000000000",
+      priceWei: "3000000000",
     });
 
     expect(updatedRecord.onchainRegistration).toMatchObject({
@@ -252,7 +275,7 @@ describe("property drafts", () => {
       expect.objectContaining({
         listingId: "1",
         amount: "300000",
-        priceWei: "3000000000000000000",
+        priceWei: "3000000000",
         txHash:
           "4444444444444444444444444444444444444444444444444444444444444444",
         status: "Active",
@@ -299,7 +322,7 @@ describe("property drafts", () => {
       txHash:
         "4444444444444444444444444444444444444444444444444444444444444444",
       amount: "300000",
-      priceWei: "3000000000000000000",
+      priceWei: "3000000000",
     });
 
     const updatedRecord = await savePropertyPrimarySalePurchase({
@@ -311,7 +334,7 @@ describe("property drafts", () => {
         "5555555555555555555555555555555555555555555555555555555555555555",
       buyerWallet: "11111111111111111111111111111114",
       amount: "300000",
-      priceWei: "3000000000000000000",
+      priceWei: "3000000000",
     });
 
     expect(updatedRecord.onchainRegistration).toMatchObject({
@@ -320,13 +343,13 @@ describe("property drafts", () => {
       activeListingsCount: "0",
       activeEscrowedAmount: "0",
       totalFreeValueSold: "300000",
-      sellerReceivedWei: "3000000000000000000",
+      sellerReceivedWei: "3000000000",
     });
     expect(updatedRecord.onchainRegistration?.buyerBalances).toEqual([
       expect.objectContaining({
         buyerWallet: "11111111111111111111111111111114",
         freeValueUnits: "300000",
-        totalPaidWei: "3000000000000000000",
+        totalPaidWei: "3000000000",
         lastPurchaseTxHash:
           "5555555555555555555555555555555555555555555555555555555555555555",
       }),
@@ -381,7 +404,7 @@ describe("property drafts", () => {
       txHash:
         "4444444444444444444444444444444444444444444444444444444444444444",
       amount: "300000",
-      priceWei: "3000000000000000000",
+      priceWei: "3000000000",
     });
 
     const updatedRecord = await savePropertyPrimarySaleCancellation({
@@ -417,7 +440,7 @@ describe("property drafts", () => {
 
     expect(record.localPropertyId).toBe("32000000-0000-4000-8000-000000000032");
     expect(record.ownerWallet).toBe(process.env.DEMO_SELLER_ADDRESS);
-    expect(record.marketValueWei).toBe("200000000000000000");
+    expect(record.marketValueWei).toBe("200000000");
     expect(record.linkedValueBps).toBe(2000);
     expect(record.onchainRegistration).toMatchObject({
       propertyId: "32",
@@ -427,7 +450,7 @@ describe("property drafts", () => {
       activeListingsCount: "0",
       activeEscrowedAmount: "0",
       totalFreeValueSold: "300000",
-      sellerReceivedWei: "60000000000000000",
+      sellerReceivedWei: "60000000",
     });
     expect(record.onchainRegistration?.primarySaleListings).toEqual([
       expect.objectContaining({
@@ -442,7 +465,7 @@ describe("property drafts", () => {
       expect.objectContaining({
         buyerWallet: process.env.DEMO_BUYER_ADDRESS,
         freeValueUnits: "300000",
-        totalPaidWei: "60000000000000000",
+        totalPaidWei: "60000000",
       }),
     ]);
 

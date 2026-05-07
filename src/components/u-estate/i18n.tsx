@@ -43,9 +43,9 @@ const exactTranslations: Record<string, string> = {
   "Conectar carteira": "Connect wallet",
   "Conectando…": "Connecting...",
   "Sem carteira detectada": "No wallet detected",
-  "Trocar para Sepolia": "Switch to Sepolia",
+  "Trocar para Solana Devnet": "Switch to Solana Devnet",
   "Trocando…": "Switching...",
-  "A carteira precisa estar na rede Sepolia": "The wallet must be on Sepolia",
+  "A carteira precisa estar na rede Solana Devnet": "The wallet must be on Solana Devnet",
   "Desconectar carteira": "Disconnect wallet",
   "Bem-vinda de volta": "Welcome back",
   "Acompanhe seus imóveis e quanto cada um já captou.": "Track your properties and how much each has already raised.",
@@ -96,7 +96,7 @@ const exactTranslations: Record<string, string> = {
   "Descrição (opcional)": "Description (optional)",
   "Conte um pouco sobre o imóvel — bairro, características, contexto…": "Describe the property: neighborhood, features, context...",
   "Avaliação do imóvel": "Property valuation",
-  "Valor de mercado estimado em ETH.": "Estimated market value in ETH.",
+  "Valor de mercado estimado em SOL.": "Estimated market value in SOL.",
   "Quanto você quer manter reservado para você?": "How much do you want to keep reserved for yourself?",
   "5% (máxima captação)": "5% (maximum raise)",
   "50% (cautela)": "50% (cautious)",
@@ -140,15 +140,15 @@ const exactTranslations: Record<string, string> = {
   "Ver imóvel": "View property",
   "Investir em imóveis": "Invest in properties",
   "Imóveis verificados, a partir de": "Verified properties, starting at",
-  "0,001 ETH": "0.001 ETH",
+  "0,001 SOL": "0.001 SOL",
   "Disponível agora": "Available now",
   "A partir de": "Starting at",
   "Buscar imóvel ou cidade…": "Search property or city...",
   "Todas as cidades": "All cities",
   "Qualquer ticket": "Any ticket",
-  "Até 0,005 ETH": "Up to 0.005 ETH",
-  "0,005–0,05 ETH": "0.005-0.05 ETH",
-  "0,05+ ETH": "0.05+ ETH",
+  "Até 0,005 SOL": "Up to 0.005 SOL",
+  "0,005–0,05 SOL": "0.005-0.05 SOL",
+  "0,05+ SOL": "0.05+ SOL",
   "Mais recentes": "Most recent",
   "Menor ticket primeiro": "Lowest ticket first",
   "Maior ticket primeiro": "Highest ticket first",
@@ -252,7 +252,7 @@ const exactTranslations: Record<string, string> = {
   "O direito de morar e usar o imóvel. Permanece com a proprietária e não circula no marketplace — quem investe não ganha acesso à casa.": "The right to live in and use the property. It remains with the owner and does not circulate in the marketplace, so investors do not gain access to the home.",
   "Token único, intransferível por venda direta": "Unique token, non-transferable through direct sale",
   "A participação econômica do imóvel: a parcela do valor que a proprietária pode ofertar a investidores em frações pequenas e negociáveis.": "The property's economic participation: the share of value the owner can offer to investors in small, tradable fractions.",
-  "Compre frações a partir de 0,001 ETH": "Buy fractions starting at 0.001 ETH",
+  "Compre frações a partir de 0,001 SOL": "Buy fractions starting at 0.001 SOL",
   "A casa continua sua": "The home remains yours",
   "A proprietária mantém o direito de morar mesmo após captar liquidez vendendo frações do valor.": "The owner keeps the right to live in the home even after raising liquidity by selling value fractions.",
   "Liquidez sob medida": "Tailored liquidity",
@@ -261,7 +261,7 @@ const exactTranslations: Record<string, string> = {
   "A transação é direta entre vendedora e compradora; o contrato registra tudo.": "The transaction is direct between seller and buyer; the contract records everything.",
   "Compliance por design": "Compliance by design",
   "Tokens não saem da plataforma. Apenas operações autorizadas pelos contratos.": "Tokens do not leave the platform. Only contract-authorized operations are allowed.",
-  "Acessível desde 0,001 ETH": "Accessible from 0.001 ETH",
+  "Acessível desde 0,001 SOL": "Accessible from 0.001 SOL",
   "Você não precisa comprar o imóvel inteiro para começar a investir em valor imobiliário.": "You do not need to buy the entire property to start investing in real estate value.",
   "Auditável on-chain": "Auditable on-chain",
   "Cada hash, cada verificação, cada compra: tudo registrado em rede pública.": "Every hash, every verification, every purchase: all recorded on a public network.",
@@ -288,7 +288,7 @@ const exactTranslations: Record<string, string> = {
   "Nossa equipe valida em até 24h.": "Our team validates within 24h.",
   "Disponibilize": "List it",
   "Escolha quanto do imóvel quer ofertar.": "Choose how much of the property to offer.",
-  "Investidores compram e o ETH vai pra sua carteira.": "Investors buy and ETH goes to your wallet.",
+  "Investidores compram e o SOL vai pra sua carteira.": "Investors buy and SOL goes to your wallet.",
   "Eu fico dono de uma parte da casa?": "Do I own part of the home?",
   "Como ganho dinheiro?": "How do I make money?",
   "E se eu quiser sair?": "What if I want to exit?",
@@ -381,7 +381,7 @@ const exactTranslations: Record<string, string> = {
 };
 
 const phraseTranslations: Array<[RegExp, string]> = [
-  [/Im[oó]veis verificados, a partir de\s*0,001 ETH\./g, "Verified properties, starting at 0.001 ETH."],
+  [/Im[oó]veis verificados, a partir de\s*0,001 SOL\./g, "Verified properties, starting at 0.001 SOL."],
   [/Compre uma participa[cç][aã]o no valor econ[oô]mico de im[oó]veis reais\./g, "Buy an economic stake in real properties."],
   [/Voc[eê] ganha conforme o im[oó]vel valoriza, sem precisar comprar a casa inteira\./g, "You benefit as the property appreciates, without buying the whole home."],
   [/Invista em\s*valor imobili[aá]rio\s*sem comprar o im[oó]vel inteiro\./g, "Invest in real estate value without buying the entire property."],
@@ -410,12 +410,12 @@ function preserveEdges(original: string, translatedCore: string) {
 function localizeDecimalSeparators(value: string, locale: Locale) {
   if (locale === "en") {
     return value.replace(
-      /\b(\d+),(\d+)(?=\s*(?:ETH|USDC|USDT|USD|BRL|%))/g,
+      /\b(\d+),(\d+)(?=\s*(?:SOL|USDC|USDT|USD|BRL|%))/g,
       "$1.$2",
     );
   }
   return value.replace(
-    /\b(\d+)\.(\d+)(?=\s*(?:ETH|USDC|USDT|USD|BRL|%))/g,
+    /\b(\d+)\.(\d+)(?=\s*(?:SOL|USDC|USDT|USD|BRL|%))/g,
     "$1,$2",
   );
 }

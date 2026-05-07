@@ -9,7 +9,7 @@ import {
   formatUnits,
   formatUsd,
 } from "./data";
-import { weiToEthDecimalString } from "@/lib/safe-decimal";
+import { lamportsToSolDecimal } from "@/lib/solana/instructions";
 import {
   IconCheck,
   IconCoins,
@@ -160,7 +160,7 @@ export function MarketplacePage({
             }}
           >
             Imóveis verificados, a partir de{" "}
-            <span style={{ color: "var(--color-orange)" }}>0,001 ETH</span>.
+            <span style={{ color: "var(--color-orange)" }}>0.001 SOL</span>.
           </h1>
           <p
             style={{
@@ -189,7 +189,7 @@ export function MarketplacePage({
                 Disponível agora
               </div>
               <div className="fw-800 text-2xl mono mt-12">
-                {totalAvailableEth.toFixed(2)} ETH
+                {totalAvailableEth.toFixed(2)} SOL
               </div>
             </div>
             <div
@@ -208,7 +208,7 @@ export function MarketplacePage({
                 A partir de
               </div>
               <div className="fw-800 text-2xl mono mt-12">
-                {minTicket.toFixed(4)} ETH
+                {minTicket.toFixed(4)} SOL
               </div>
             </div>
             <div
@@ -261,9 +261,9 @@ export function MarketplacePage({
             style={{ minWidth: 180 }}
           >
             <option value="all">Qualquer ticket</option>
-            <option value="low">Até 0,005 ETH</option>
-            <option value="mid">0,005–0,05 ETH</option>
-            <option value="high">0,05+ ETH</option>
+            <option value="low">Up to 0.005 SOL</option>
+            <option value="mid">0.005-0.05 SOL</option>
+            <option value="high">0.05+ SOL</option>
           </select>
           <select
             className="select"
@@ -324,7 +324,9 @@ export function ListingDetailPage({
 }) {
   const minUnits = 1000;
   const initialUnits = listing
-    ? Math.min(5000, Math.max(minUnits, listing.amount))
+    ? actions.ready
+      ? listing.amount
+      : Math.min(5000, Math.max(minUnits, listing.amount))
     : 0;
   const [units, setUnits] = useState(initialUnits);
   const [tx, setTx] = useState<{ open: boolean; step: TxStep }>({
@@ -342,13 +344,16 @@ export function ListingDetailPage({
 
   const TOTAL_VALUE_UNITS = 1_000_000n;
   const marketValueWei = ethToWei(property.marketValueEth);
-  const payWei = (marketValueWei * BigInt(units)) / TOTAL_VALUE_UNITS;
-  const totalPrice = Number(weiToEthDecimalString(payWei, 18));
+  const selectedUnits = actions.ready ? listing.amount : units;
+  const payWei = actions.ready
+    ? ethToWei(listing.priceWei)
+    : (marketValueWei * BigInt(selectedUnits)) / TOTAL_VALUE_UNITS;
+  const totalPrice = Number(lamportsToSolDecimal(payWei, 9));
   const pricePerUnit =
     listing.amount > 0
       ? Number(listing.priceWei) / listing.amount
       : 0;
-  const pctOfProp = (units / property.totalValueUnits) * 100;
+  const pctOfProp = (selectedUnits / property.totalValueUnits) * 100;
   const offerPctOfProp = (listing.amount / property.totalValueUnits) * 100;
   const isSellerWallet =
     Boolean(walletAddress) &&
@@ -372,7 +377,7 @@ export function ListingDetailPage({
       await actions.buyListing(
         property.id,
         listing.listingId,
-        units,
+        selectedUnits,
         payWei,
         (s) => setTx({ open: true, step: s }),
       );
@@ -467,7 +472,7 @@ export function ListingDetailPage({
                     Investimento mínimo
                   </div>
                   <div className="fw-800 text-xl mono mt-12">
-                    {(pricePerUnit * minUnits).toFixed(4)} ETH
+                    {(pricePerUnit * minUnits).toFixed(4)} SOL
                   </div>
                   <div className="muted text-sm">
                     ≈ {formatUsd(pricePerUnit * minUnits)}
@@ -485,7 +490,7 @@ export function ListingDetailPage({
                     Disponível nesta oferta
                   </div>
                   <div className="fw-800 text-xl mono mt-12">
-                    {Number(listing.priceWei).toFixed(3)} ETH
+                    {Number(listing.priceWei).toFixed(3)} SOL
                   </div>
                   <div className="muted text-sm">
                     {formatUnits(listing.amount)} unidades
@@ -670,7 +675,8 @@ export function ListingDetailPage({
                 min={Math.min(minUnits, listing.amount)}
                 max={listing.amount}
                 step="1000"
-                value={units}
+                value={selectedUnits}
+                disabled={actions.ready}
                 onChange={(e) => setUnits(Number(e.target.value))}
               />
               <div className="row-between text-xs muted mt-12">
@@ -711,7 +717,7 @@ export function ListingDetailPage({
                 className="fw-800 mono text-3xl mt-12"
                 style={{ color: "var(--color-charcoal)" }}
               >
-                {totalPrice.toFixed(6)} ETH
+                {totalPrice.toFixed(6)} SOL
               </div>
               <div
                 className="text-sm mt-12"
@@ -730,7 +736,7 @@ export function ListingDetailPage({
               </div>
               <div className="row-between">
                 <span className="muted text-sm">Unidades</span>
-                <strong>{formatUnits(units)}</strong>
+                <strong>{formatUnits(selectedUnits)}</strong>
               </div>
             </div>
 

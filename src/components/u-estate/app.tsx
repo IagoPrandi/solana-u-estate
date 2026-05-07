@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SavedPropertyRecord } from "@/offchain/schemas";
-import { weiToEthDecimalString } from "@/lib/safe-decimal";
+import { lamportsToSolDecimal } from "@/lib/solana/instructions";
 import { useUEstateActions, type NewPropertyForm } from "./actions";
 import { DashboardPage } from "./dashboard";
 import {
@@ -485,7 +485,7 @@ export function UEstateApp() {
           sellerWallet: listing.seller,
           buyerWallet: user.wallet,
           propertyTitle: prop?.title ?? "—",
-          valueEth: weiToEthDecimalString(priceWei, 8),
+          valueEth: lamportsToSolDecimal(priceWei, 8),
           status: "Confirmado",
           date: new Date().toISOString(),
           txHash,

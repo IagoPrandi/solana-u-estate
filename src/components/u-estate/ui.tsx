@@ -173,7 +173,7 @@ export function Sidebar({
         <div className="label">Rede</div>
         <div className="net">
           <span className="dot" />
-          Sepolia · ETH
+          Solana Devnet · SOL
         </div>
       </div>
     </aside>
@@ -422,14 +422,14 @@ export function OfferCard({
           <div>
             <div className="offer-stat-label">Investimento mínimo</div>
             <div className="offer-stat-value mono">
-              {minTicket.toFixed(4)} ETH
+              {minTicket.toFixed(4)} SOL
             </div>
             <div className="offer-stat-sub">≈ {formatUsd(minTicket)}</div>
           </div>
           <div>
             <div className="offer-stat-label">Oferta total</div>
             <div className="offer-stat-value mono">
-              {Number(listing.priceWei).toFixed(3)} ETH
+              {Number(listing.priceWei).toFixed(3)} SOL
             </div>
             <div className="offer-stat-sub">
               {formatUnits(listing.amount)} unidades

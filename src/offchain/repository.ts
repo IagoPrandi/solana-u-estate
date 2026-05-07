@@ -5,6 +5,7 @@ import { buildSavedPropertyRecord } from "@/offchain/property-draft";
 import { isSolanaPublicKey } from "@/lib/solana/config";
 import type {
   FiatRatesSnapshot,
+  LocalSolanaTransaction,
   PropertyDraftInput,
   PropertyPrimarySaleCancellationInput,
   PropertyPrimarySaleListingInput,
@@ -34,6 +35,14 @@ const DEMO_SIGNATURE_4 =
   "4444444444444444444444444444444444444444444444444444444444444444";
 const DEMO_SIGNATURE_5 =
   "5555555555555555555555555555555555555555555555555555555555555555";
+
+function solanaTransaction(input: Omit<LocalSolanaTransaction, "createdAt" | "syncStatus">) {
+  return {
+    ...input,
+    syncStatus: "confirmed" as const,
+    createdAt: new Date().toISOString(),
+  };
+}
 
 export async function listPropertyDrafts() {
   const db = await getDb();
@@ -149,7 +158,7 @@ export async function seedSection32DemoScenario() {
     listingId: SECTION_32_DEMO_LISTING_ID,
     txHash: DEMO_SIGNATURE_4,
     amount: "300000",
-    priceWei: "60000000000000000",
+    priceWei: "60000000",
   });
 
   return savePropertyPrimarySalePurchase({
@@ -160,7 +169,7 @@ export async function seedSection32DemoScenario() {
     txHash: DEMO_SIGNATURE_5,
     buyerWallet,
     amount: "300000",
-    priceWei: "60000000000000000",
+    priceWei: "60000000",
   });
 }
 
@@ -186,6 +195,14 @@ export async function saveOnchainPropertyRegistration(
     status: "PendingMockVerification",
     registeredAt: new Date().toISOString(),
   };
+  db.data.solanaTransactions.unshift(
+    solanaTransaction({
+      signature: input.txHash,
+      kind: "registration",
+      localPropertyId: input.localPropertyId,
+      propertyId: input.propertyId,
+    }),
+  );
 
   await db.write();
 
@@ -219,6 +236,14 @@ export async function savePropertyMockVerification(
   property.onchainRegistration.status = "MockVerified";
   property.onchainRegistration.verificationTxHash = input.txHash;
   property.onchainRegistration.verifiedAt = new Date().toISOString();
+  db.data.solanaTransactions.unshift(
+    solanaTransaction({
+      signature: input.txHash,
+      kind: "mockVerification",
+      localPropertyId: input.localPropertyId,
+      propertyId: input.propertyId,
+    }),
+  );
 
   await db.write();
 
@@ -260,6 +285,14 @@ export async function savePropertyTokenization(
   property.onchainRegistration.usufructTokenId = input.usufructTokenId;
   property.onchainRegistration.linkedValueUnits = input.linkedValueUnits;
   property.onchainRegistration.freeValueUnits = input.freeValueUnits;
+  db.data.solanaTransactions.unshift(
+    solanaTransaction({
+      signature: input.txHash,
+      kind: "tokenization",
+      localPropertyId: input.localPropertyId,
+      propertyId: input.propertyId,
+    }),
+  );
 
   await db.write();
 
@@ -317,12 +350,24 @@ export async function savePropertyPrimarySaleListing(
       listingId: input.listingId,
       amount: input.amount,
       priceWei: input.priceWei,
+      priceLamports: input.priceWei,
       txHash: input.txHash,
+      createdSignature: input.txHash,
+      syncStatus: "confirmed",
       status: "Active",
       listedAt: new Date().toISOString(),
     },
     ...existingListings,
   ];
+  db.data.solanaTransactions.unshift(
+    solanaTransaction({
+      signature: input.txHash,
+      kind: "primarySaleListing",
+      localPropertyId: input.localPropertyId,
+      propertyId: input.propertyId,
+      listingId: input.listingId,
+    }),
+  );
 
   await db.write();
 
@@ -457,6 +502,15 @@ export async function savePropertyPrimarySalePurchase(
   ).toString();
   property.onchainRegistration.buyerBalances = buyerBalances;
   property.onchainRegistration.primarySaleListings = updatedListings;
+  db.data.solanaTransactions.unshift(
+    solanaTransaction({
+      signature: input.txHash,
+      kind: "primarySalePurchase",
+      localPropertyId: input.localPropertyId,
+      propertyId: input.propertyId,
+      listingId: input.listingId,
+    }),
+  );
 
   await db.write();
 
@@ -523,6 +577,15 @@ export async function savePropertyPrimarySaleCancellation(
   property.onchainRegistration.activeListingsCount = activeListingsCount;
   property.onchainRegistration.totalFreeValueSold ??= "0";
   property.onchainRegistration.primarySaleListings = updatedListings;
+  db.data.solanaTransactions.unshift(
+    solanaTransaction({
+      signature: input.txHash,
+      kind: "primarySaleCancellation",
+      localPropertyId: input.localPropertyId,
+      propertyId: input.propertyId,
+      listingId: input.listingId,
+    }),
+  );
 
   await db.write();
 

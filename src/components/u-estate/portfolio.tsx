@@ -51,7 +51,7 @@ export function PortfolioPage({
   const owned = properties;
   const holdings = getWalletHoldings(properties, user.wallet);
 
-  const totalOwnedValueEth = owned.reduce(
+  const totalOwnedvalueEth = owned.reduce(
     (s, p) =>
       s +
       Number(p.marketValueEth) *
@@ -59,16 +59,16 @@ export function PortfolioPage({
           (p.freeValueUnits - p.soldFreeValueUnits) / p.totalValueUnits),
     0,
   );
-  const totalHoldingsValueEth = holdings.reduce(
+  const totalHoldingsvalueEth = holdings.reduce(
     (s, h) =>
       s +
       (Number(h.property.marketValueEth) * h.units) /
         h.property.totalValueUnits,
     0,
   );
-  const totalInvestedEth = holdings.reduce((s, h) => s + h.costEth, 0);
-  const pnl = totalHoldingsValueEth - totalInvestedEth;
-  const pnlPct = totalInvestedEth > 0 ? (pnl / totalInvestedEth) * 100 : 0;
+  const totalInvestedSOL = holdings.reduce((s, h) => s + h.costEth, 0);
+  const pnl = totalHoldingsvalueEth - totalInvestedSOL;
+  const pnlPct = totalInvestedSOL > 0 ? (pnl / totalInvestedSOL) * 100 : 0;
 
   const tabs: [typeof tab, string, number][] = isBuyer
     ? [
@@ -116,10 +116,10 @@ export function PortfolioPage({
               Investido
             </div>
             <div className="fw-800 text-2xl mt-12 mono">
-              {totalInvestedEth.toFixed(3)} ETH
+              {totalInvestedSOL.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalInvestedEth)}
+              ≈ {formatUsd(totalInvestedSOL)}
             </div>
             <div
               className="text-xs mt-12"
@@ -140,10 +140,10 @@ export function PortfolioPage({
               Valor atual
             </div>
             <div className="fw-800 text-2xl mt-12 mono">
-              {totalHoldingsValueEth.toFixed(3)} ETH
+              {totalHoldingsvalueEth.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalHoldingsValueEth)}
+              ≈ {formatUsd(totalHoldingsvalueEth)}
             </div>
             <div
               className="text-xs mt-12 fw-700"
@@ -153,7 +153,7 @@ export function PortfolioPage({
               }}
             >
               {pnl >= 0 ? "+" : ""}
-              {pnl.toFixed(4)} ETH ({pnlPct >= 0 ? "+" : ""}
+              {pnl.toFixed(4)} SOL ({pnlPct >= 0 ? "+" : ""}
               {pnlPct.toFixed(1)}%)
             </div>
           </div>
@@ -183,7 +183,7 @@ export function PortfolioPage({
               }}
             >
               {pnl >= 0 ? "+" : ""}
-              {pnl.toFixed(3)} ETH
+              {pnl.toFixed(3)} SOL
             </div>
             <div className="text-sm" style={{ opacity: 0.7 }}>
               ≈ {formatUsd(Math.abs(pnl))}
@@ -207,10 +207,10 @@ export function PortfolioPage({
               Patrimônio próprio
             </div>
             <div className="fw-800 text-2xl mt-12 mono">
-              {totalOwnedValueEth.toFixed(3)} ETH
+              {totalOwnedvalueEth.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalOwnedValueEth)}
+              ≈ {formatUsd(totalOwnedvalueEth)}
             </div>
             <div
               className="text-xs mt-12"
@@ -232,10 +232,10 @@ export function PortfolioPage({
               Investimentos
             </div>
             <div className="fw-800 text-2xl mt-12 mono">
-              {totalHoldingsValueEth.toFixed(3)} ETH
+              {totalHoldingsvalueEth.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalHoldingsValueEth)}
+              ≈ {formatUsd(totalHoldingsvalueEth)}
             </div>
             <div
               className="text-xs mt-12"
@@ -264,10 +264,10 @@ export function PortfolioPage({
               Total
             </div>
             <div className="fw-800 text-2xl mt-12 mono">
-              {(totalOwnedValueEth + totalHoldingsValueEth).toFixed(3)} ETH
+              {(totalOwnedvalueEth + totalHoldingsvalueEth).toFixed(3)} SOL
             </div>
             <div className="text-sm" style={{ opacity: 0.7 }}>
-              ≈ {formatUsd(totalOwnedValueEth + totalHoldingsValueEth)}
+              ≈ {formatUsd(totalOwnedvalueEth + totalHoldingsvalueEth)}
             </div>
           </div>
         </div>
@@ -359,7 +359,7 @@ export function PortfolioPage({
                       <span>
                         <span className="muted">Investido</span>{" "}
                         <strong className="mono">
-                          {h.costEth.toFixed(4)} ETH
+                          {h.costEth.toFixed(4)} SOL
                         </strong>
                       </span>
                     </div>
@@ -376,7 +376,7 @@ export function PortfolioPage({
                       Valor atual
                     </div>
                     <div className="fw-800 text-xl mono">
-                      {valueEth.toFixed(4)} ETH
+                      {valueEth.toFixed(4)} SOL
                     </div>
                     <div
                       className="text-sm fw-700"
@@ -388,7 +388,7 @@ export function PortfolioPage({
                       }}
                     >
                       {hpnl >= 0 ? "+" : ""}
-                      {hpnl.toFixed(4)} ETH ({hpnlPct >= 0 ? "+" : ""}
+                      {hpnl.toFixed(4)} SOL ({hpnlPct >= 0 ? "+" : ""}
                       {hpnlPct.toFixed(1)}%)
                     </div>
                   </div>
@@ -420,7 +420,7 @@ export function PortfolioPage({
                   </td>
                   <td>{t.propertyTitle}</td>
                   <td className="mono">
-                    {t.valueEth ? Number(t.valueEth).toFixed(4) + " ETH" : "—"}
+                    {t.valueEth ? Number(t.valueEth).toFixed(4) + " SOL" : "—"}
                   </td>
                   <td>
                     <TxStatusBadge status={t.status} />
@@ -490,7 +490,7 @@ export function TransactionsPage({
                 </td>
                 <td>{t.propertyTitle}</td>
                 <td className="mono">
-                  {t.valueEth ? Number(t.valueEth).toFixed(4) + " ETH" : "—"}
+                  {t.valueEth ? Number(t.valueEth).toFixed(4) + " SOL" : "—"}
                 </td>
                 <td>
                   <TxStatusBadge status={t.status} />
@@ -593,7 +593,7 @@ export function LearnPage({ role }: { role: Role; navigate: Navigate }) {
                 {
                   n: 2,
                   t: "Defina seu valor",
-                  d: "A partir de poucos centésimos de ETH.",
+                  d: "A partir de poucos centésimos de SOL.",
                 },
                 {
                   n: 3,
@@ -612,7 +612,7 @@ export function LearnPage({ role }: { role: Role; navigate: Navigate }) {
                 {
                   n: 4,
                   t: "Receba",
-                  d: "Investidores compram e o ETH vai pra sua carteira.",
+                  d: "Investidores compram e o SOL vai pra sua carteira.",
                 },
               ]
           ).map((s) => (
@@ -760,7 +760,7 @@ export function SettingsPage({
             </div>
           </div>
           <div className="grid-2">
-            {["Sepolia", "Mainnet", "Polygon", "Anvil local"].map((n) => (
+            {["Solana Devnet", "Mainnet", "Polygon", "Anvil local"].map((n) => (
               <label
                 key={n}
                 className={"network-card" + (user.network === n ? " active" : "")}
@@ -770,7 +770,7 @@ export function SettingsPage({
                 <div>
                   <div className="fw-700 text-sm">{n}</div>
                   <div className="muted text-xs">
-                    {n === "Sepolia"
+                    {n === "Solana Devnet"
                       ? "Testnet recomendada"
                       : n === "Anvil local"
                         ? "Desenvolvimento local"

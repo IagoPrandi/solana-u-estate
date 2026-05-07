@@ -3054,35 +3054,35 @@ Roadmap mínimo:
 
 ### Checklist
 
-- [ ] Implementar `cancel_primary_sale_listing`.
-- [ ] Validar seller signer.
-- [ ] Validar listing ativa.
-- [ ] Devolver tokens ao seller com `transfer_checked`.
-- [ ] Atualizar listing para `Cancelled`.
-- [ ] Atualizar contadores.
-- [ ] Atualizar status da propriedade.
-- [ ] Fechar escrow token account.
-- [ ] Enviar rent para seller.
-- [ ] Manter `ListingAccount` aberta com status final.
+- [x] Implementar `cancel_primary_sale_listing`.
+- [x] Validar seller signer.
+- [x] Validar listing ativa.
+- [x] Devolver tokens ao seller com `transfer_checked`.
+- [x] Atualizar listing para `Cancelled`.
+- [x] Atualizar contadores.
+- [x] Atualizar status da propriedade.
+- [x] Fechar escrow token account.
+- [x] Enviar rent para seller.
+- [x] Manter `ListingAccount` aberta com status final.
 
 ### Critérios de aprovação
 
-- [ ] Pessoa A cancela listing ativa.
-- [ ] Tokens voltam para ATA da Pessoa A.
-- [ ] Listing vira `Cancelled`.
-- [ ] Escrow fecha e rent volta para seller.
-- [ ] Status volta para `Tokenized` se não houver listings ativas.
+- [x] Pessoa A cancela listing ativa.
+- [x] Tokens voltam para ATA da Pessoa A.
+- [x] Listing vira `Cancelled`.
+- [x] Escrow fecha e rent volta para seller.
+- [x] Status volta para `Tokenized` se não houver listings ativas.
 
 ### Testes
 
-- [ ] Cancelamento válido.
-- [ ] Cancelamento por não seller reverte.
-- [ ] Cancelamento de listing preenchida reverte.
-- [ ] Cancelamento de listing cancelada reverte.
-- [ ] Seller ATA falsa reverte.
-- [ ] Mint falso reverte.
-- [ ] Escrow falso reverte.
-- [ ] Rent retorna ao seller.
+- [x] Cancelamento válido.
+- [x] Cancelamento por não seller reverte.
+- [x] Cancelamento de listing preenchida reverte.
+- [x] Cancelamento de listing cancelada reverte.
+- [x] Seller ATA falsa reverte.
+- [x] Mint falso reverte.
+- [x] Escrow falso reverte.
+- [x] Rent retorna ao seller.
 
 ---
 

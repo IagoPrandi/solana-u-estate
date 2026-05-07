@@ -152,7 +152,7 @@ export function LandingPage({
               <div className="hero-stat-lbl">direitos por imóvel</div>
             </div>
             <div>
-              <div className="hero-stat-num">0,001 ETH</div>
+              <div className="hero-stat-num">0,001 SOL</div>
               <div className="hero-stat-lbl">menor fração</div>
             </div>
             <div>
@@ -177,7 +177,7 @@ export function LandingPage({
             >
               Casa Vila Madalena
             </div>
-            <div className="fw-800 text-lg mt-12">0,85 ETH</div>
+            <div className="fw-800 text-lg mt-12">0,85 SOL</div>
             <div className="muted text-sm">≈ US$ 1.998</div>
             <div
               className="value-split-bar mt-16"
@@ -245,7 +245,7 @@ export function LandingPage({
               <div>
                 <div className="fw-700 text-sm">Compra confirmada</div>
                 <div className="muted text-xs">
-                  + 80.000 unidades · 0.068 ETH
+                  + 80.000 unidades · 0.068 SOL
                 </div>
               </div>
             </div>
@@ -270,7 +270,7 @@ export function LandingPage({
             <h3>Compre frações de imóveis reais.</h3>
             <p>
               Acesso a participação econômica em imóveis a partir de 0,001
-              ETH. Sem cartório, sem contrato em papel, sem precisar comprar o
+              SOL. Sem cartório, sem contrato em papel, sem precisar comprar o
               imóvel inteiro.
             </p>
             <ul className="audience-list">
@@ -313,7 +313,7 @@ export function LandingPage({
               </li>
               <li>
                 <IconCheck size={16} />
-                <span>Receba ETH direto na sua carteira</span>
+                <span>Receba SOL direto na sua carteira</span>
               </li>
             </ul>
             <button className="btn btn-neutral w-100" onClick={enterAsOwner}>
@@ -419,7 +419,7 @@ export function LandingPage({
             >
               <IconCoins size={14} />
               <span className="text-sm">
-                Compre frações a partir de 0,001 ETH
+                Compre frações a partir de 0,001 SOL
               </span>
             </div>
           </div>
@@ -455,7 +455,7 @@ export function LandingPage({
             },
             {
               i: <IconUsers size={26} />,
-              t: "Acessível desde 0,001 ETH",
+              t: "Acessível desde 0,001 SOL",
               d: "Você não precisa comprar o imóvel inteiro para começar a investir em valor imobiliário.",
             },
             {

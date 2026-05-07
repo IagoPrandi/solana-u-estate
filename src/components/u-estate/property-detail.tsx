@@ -140,7 +140,7 @@ export function PropertyDetailPage({
   );
   const soldPct = (p.soldFreeValueUnits / p.freeValueUnits) * 100 || 0;
   const availUnits = p.freeValueUnits - p.soldFreeValueUnits;
-  const capturedEth =
+  const capturedSOL =
     Number(p.marketValueEth) * (p.soldFreeValueUnits / p.totalValueUnits);
   const primary = (() => {
     if (p.status === "PendingMockVerification")
@@ -275,7 +275,7 @@ export function PropertyDetailPage({
                         className="fw-800 text-2xl mono mt-12"
                         style={{ color: "var(--color-success)" }}
                       >
-                        {capturedEth.toFixed(3)} ETH
+                        {capturedSOL.toFixed(3)} SOL
                       </div>
                       <div className="muted text-sm">
                         {soldPct.toFixed(0)}% da oferta
@@ -339,7 +339,7 @@ export function PropertyDetailPage({
                           Number(p.marketValueEth) *
                           (p.freeValueUnits / p.totalValueUnits)
                         ).toFixed(3)}{" "}
-                        ETH
+                        SOL
                       </div>
                       <div className="muted text-sm">
                         {((p.freeValueUnits / p.totalValueUnits) * 100).toFixed(
@@ -459,7 +459,7 @@ export function PropertyDetailPage({
                         }}
                       >
                         <div className="mono fw-800 text-base">
-                          {Number(l.priceWei).toFixed(4)} ETH
+                          {Number(l.priceWei).toFixed(4)} SOL
                         </div>
                         <span
                           className={
@@ -1013,9 +1013,9 @@ export function PropertyPublishPage({
   const p = property;
 
   const units = Math.round(p.totalValueUnits * (pctOfProperty / 100));
-  const priceEth =
+  const priceSOL =
     Number(p.marketValueEth) * (units / p.totalValueUnits);
-  const minTicket = units > 0 ? (priceEth / units) * 1000 : 0;
+  const minTicket = units > 0 ? (priceSOL / units) * 1000 : 0;
 
   const start = async () => {
     setErrorMessage(null);
@@ -1136,13 +1136,13 @@ export function PropertyPublishPage({
                 className="fw-800 text-3xl mono mt-12"
                 style={{ color: "var(--color-charcoal)" }}
               >
-                {priceEth.toFixed(3)} ETH
+                {priceSOL.toFixed(3)} SOL
               </div>
               <div
                 className="text-sm mt-12"
                 style={{ color: "var(--color-charcoal-soft)" }}
               >
-                ≈ {formatUsd(priceEth)} · {formatBrl(priceEth)}
+                ≈ {formatUsd(priceSOL)} · {formatBrl(priceSOL)}
               </div>
               <div
                 className="text-xs mt-12"
@@ -1163,7 +1163,7 @@ export function PropertyPublishPage({
                 Investimento mínimo por pessoa
               </div>
               <div className="fw-800 text-2xl mono mt-12">
-                {minTicket.toFixed(4)} ETH
+                {minTicket.toFixed(4)} SOL
               </div>
               <div className="muted text-sm">≈ {formatUsd(minTicket)}</div>
               <div className="text-xs mt-12 muted">
@@ -1310,11 +1310,11 @@ export function PropertyPublishPage({
               <div className="divider-dashed" />
               <div className="row-between">
                 <span className="muted text-sm">Investimento mínimo</span>
-                <strong className="mono">{minTicket.toFixed(4)} ETH</strong>
+                <strong className="mono">{minTicket.toFixed(4)} SOL</strong>
               </div>
               <div className="row-between mt-12">
                 <span className="muted text-sm">Oferta total</span>
-                <strong className="mono">{priceEth.toFixed(3)} ETH</strong>
+                <strong className="mono">{priceSOL.toFixed(3)} SOL</strong>
               </div>
               <div className="row-between mt-12">
                 <span className="muted text-sm">Duração</span>

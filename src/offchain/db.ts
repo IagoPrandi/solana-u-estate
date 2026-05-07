@@ -9,6 +9,7 @@ let dbPromise: ReturnType<typeof createDatabase> | undefined;
 
 const defaultDatabase: OffchainDatabase = {
   properties: [],
+  solanaTransactions: [],
   fiatRatesCache: {
     provider: "okx",
     base: "SOL",
@@ -34,8 +35,17 @@ async function createDatabase() {
     databasePath,
     structuredClone(defaultDatabase),
   );
+  const originalWrite = db.write.bind(db);
+  let writeChain = Promise.resolve();
+
+  db.write = () => {
+    const nextWrite = writeChain.then(() => originalWrite());
+    writeChain = nextWrite.catch(() => undefined);
+    return nextWrite;
+  };
 
   db.data.properties ??= [];
+  db.data.solanaTransactions ??= [];
   db.data.fiatRatesCache ??= structuredClone(defaultDatabase.fiatRatesCache);
   await db.write();
 

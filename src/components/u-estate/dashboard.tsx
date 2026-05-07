@@ -45,7 +45,7 @@ function OwnerDashboard({
     (p) => p.status === "MockVerified" || p.status === "Tokenized",
   ).length;
   const onSale = properties.filter((p) => p.status === "ActiveSale").length;
-  const totalCapturedEth = properties.reduce(
+  const totalCapturedSOL = properties.reduce(
     (acc, p) =>
       acc +
       Number(p.marketValueEth) *
@@ -77,7 +77,7 @@ function OwnerDashboard({
         body: `Seu imóvel já está tokenizado. Você pode captar até ${(
           Number(recommended.marketValueEth) *
           (recommended.freeValueUnits / recommended.totalValueUnits)
-        ).toFixed(3)} ETH liberando uma parte do imóvel.`,
+        ).toFixed(3)} SOL liberando uma parte do imóvel.`,
         cta: "Disponibilizar agora",
         go: () => navigate("property-publish", { id: recommended.id }),
         muted: false,
@@ -135,9 +135,9 @@ function OwnerDashboard({
         </div>
         <div className="stat">
           <div className="stat-label">Já captado</div>
-          <div className="stat-value mono">{totalCapturedEth.toFixed(3)}</div>
+          <div className="stat-value mono">{totalCapturedSOL.toFixed(3)}</div>
           <div className="stat-delta" style={{ color: "var(--color-muted)" }}>
-            ETH · ≈ {formatUsd(totalCapturedEth)}
+            SOL · ≈ {formatUsd(totalCapturedSOL)}
           </div>
         </div>
       </div>
@@ -415,7 +415,7 @@ function BuyerDashboard({
             Investido
           </div>
           <div className="fw-800 text-2xl mono mt-12">
-            {totalInvested.toFixed(3)} ETH
+            {totalInvested.toFixed(3)} SOL
           </div>
           <div className="muted text-sm">≈ {formatUsd(totalInvested)}</div>
           <div
@@ -437,7 +437,7 @@ function BuyerDashboard({
             Valor atual
           </div>
           <div className="fw-800 text-2xl mono mt-12">
-            {totalValue.toFixed(3)} ETH
+            {totalValue.toFixed(3)} SOL
           </div>
           <div className="muted text-sm">≈ {formatUsd(totalValue)}</div>
           <div
@@ -449,7 +449,7 @@ function BuyerDashboard({
             }}
           >
             {pnl >= 0 ? "+" : ""}
-            {pnl.toFixed(4)} ETH ({pnlPct >= 0 ? "+" : ""}
+            {pnl.toFixed(4)} SOL ({pnlPct >= 0 ? "+" : ""}
             {pnlPct.toFixed(1)}%)
           </div>
         </div>
@@ -580,7 +580,7 @@ function BuyerDashboard({
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div className="mono fw-700 text-base">
-                      {valueEth.toFixed(4)} ETH
+                      {valueEth.toFixed(4)} SOL
                     </div>
                     <div
                       className="text-xs fw-700"

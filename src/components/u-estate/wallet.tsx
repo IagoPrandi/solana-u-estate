@@ -48,7 +48,7 @@ export function useWallet() {
     await wallet.connect();
   };
 
-  const switchToSepolia = async () => {
+  const switchToDevnet = async () => {
     throw new Error("Network switching is handled by the Solana wallet adapter.");
   };
 
@@ -58,14 +58,13 @@ export function useWallet() {
     address,
     chainId: solanaCluster,
     isConnected: wallet.connected,
-    onSepolia: onDevnet,
     onDevnet,
     onchainEnabled,
     canTransact: Boolean(address && wallet.connected && onDevnet && onchainEnabled),
     balance,
     connect,
     disconnect: wallet.disconnect,
-    switchToSepolia,
+    switchToDevnet,
     isConnecting: wallet.connecting,
     isSwitching: false,
     hasInjected: wallet.wallets.length > 0,
@@ -96,7 +95,7 @@ export function WalletChip({ wallet }: { wallet: WalletState }) {
       <button
         className="btn btn-neutral btn-sm"
         onClick={() => {
-          void wallet.switchToSepolia();
+          void wallet.switchToDevnet();
         }}
         disabled={wallet.isSwitching}
         title="Wallet must use Solana Devnet"

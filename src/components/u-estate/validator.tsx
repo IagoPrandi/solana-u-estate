@@ -27,14 +27,14 @@ function titleFromRecord(r: SavedPropertyRecord) {
   return s || `Imóvel ${r.localPropertyId.slice(0, 6)}`;
 }
 
-function weiToEthApprox(wei: string) {
-  const n = Number(BigInt(wei)) / 1e18;
+function weiToSOLApprox(wei: string) {
+  const n = Number(BigInt(wei)) / 1e9;
   return n < 1 ? n.toFixed(4) : n.toFixed(2);
 }
 
 function usdApprox(wei: string) {
-  const eth = Number(BigInt(wei)) / 1e18;
-  const usd = eth * 2350;
+  const SOL = Number(BigInt(wei)) / 1e9;
+  const usd = SOL * 150;
   return usd.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
@@ -336,7 +336,7 @@ function PropertyPanel({
                 Avaliação
               </div>
               <div className="fw-800 text-xl mono mt-12">
-                {weiToEthApprox(record.marketValueWei)} ETH
+                {weiToSOLApprox(record.marketValueWei)} SOL
               </div>
               <div className="muted text-sm">{usdApprox(record.marketValueWei)}</div>
             </div>
@@ -929,7 +929,7 @@ function PropertyRow({
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
         <div className="mono fw-700 text-sm">
-          {weiToEthApprox(record.marketValueWei)} ETH
+          {weiToSOLApprox(record.marketValueWei)} SOL
         </div>
         <div className="muted text-xs">{usdApprox(record.marketValueWei)}</div>
       </div>

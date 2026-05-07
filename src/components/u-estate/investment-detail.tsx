@@ -40,10 +40,10 @@ function ChartCard({
   property: Property;
   holding: WalletHolding;
 }) {
-  const currentValueEth =
+  const currentvalueEth =
     (Number(property.marketValueEth) * holding.units) /
     property.totalValueUnits;
-  const series = buildSeries(currentValueEth, property.id + holding.buyerWallet);
+  const series = buildSeries(currentvalueEth, property.id + holding.buyerWallet);
   const min = Math.min(...series);
   const max = Math.max(...series);
   const points = series
@@ -54,7 +54,7 @@ function ChartCard({
     })
     .join(" ");
   const area = `20,240 ${points} 580,240`;
-  const current = series.at(-1) ?? currentValueEth;
+  const current = series.at(-1) ?? currentvalueEth;
   const previous = series.at(-2) ?? current;
   const up = current >= previous;
 
@@ -72,10 +72,10 @@ function ChartCard({
           <div className="text-xs" style={{ opacity: 0.55, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
             Market chart
           </div>
-          <div className="fw-800 text-xl mt-12 mono">{assetTicker(property)}/ETH</div>
+          <div className="fw-800 text-xl mt-12 mono">{assetTicker(property)}/SOL</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="fw-800 text-xl mono">{currentValueEth.toFixed(6)} ETH</div>
+          <div className="fw-800 text-xl mono">{currentvalueEth.toFixed(6)} SOL</div>
           <div className="text-xs fw-700" style={{ color: up ? "var(--color-success)" : "var(--color-danger)" }}>
             {up ? "+" : ""}{(((current - previous) / Math.max(previous, 0.000001)) * 100).toFixed(2)}% last tick
           </div>
@@ -115,15 +115,15 @@ function ChartCard({
       <div className="grid-3 mt-16">
         <div>
           <div className="muted text-xs">24h volume</div>
-          <div className="fw-800 mono mt-12">{(holding.costEth * 0.36).toFixed(5)} ETH</div>
+          <div className="fw-800 mono mt-12">{(holding.costEth * 0.36).toFixed(5)} SOL</div>
         </div>
         <div>
           <div className="muted text-xs">Pool depth</div>
-          <div className="fw-800 mono mt-12">{(Number(property.marketValueEth) * 0.08).toFixed(4)} ETH</div>
+          <div className="fw-800 mono mt-12">{(Number(property.marketValueEth) * 0.08).toFixed(4)} SOL</div>
         </div>
         <div>
           <div className="muted text-xs">Oracle value</div>
-          <div className="fw-800 mono mt-12">{Number(property.marketValueEth).toFixed(4)} ETH</div>
+          <div className="fw-800 mono mt-12">{Number(property.marketValueEth).toFixed(4)} SOL</div>
         </div>
       </div>
     </div>
@@ -154,10 +154,10 @@ export function InvestmentDetailPage({
     );
   }
 
-  const currentValueEth =
+  const currentvalueEth =
     (Number(property.marketValueEth) * holding.units) /
     property.totalValueUnits;
-  const pnl = currentValueEth - holding.costEth;
+  const pnl = currentvalueEth - holding.costEth;
   const pnlPct = holding.costEth > 0 ? (pnl / holding.costEth) * 100 : 0;
   const ownershipPct = (holding.units / property.totalValueUnits) * 100;
   const freeSoldPct =
@@ -195,15 +195,15 @@ export function InvestmentDetailPage({
           <div className="muted text-xs" style={{ textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
             Current value
           </div>
-          <div className="fw-800 text-2xl mono mt-12">{currentValueEth.toFixed(6)} ETH</div>
-          <div className="muted text-sm">≈ {formatUsd(currentValueEth)}</div>
+          <div className="fw-800 text-2xl mono mt-12">{currentvalueEth.toFixed(6)} SOL</div>
+          <div className="muted text-sm">≈ {formatUsd(currentvalueEth)}</div>
         </div>
         <div className="card card-pad">
           <div className="muted text-xs" style={{ textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
             Unrealized PnL
           </div>
           <div className="fw-800 text-2xl mono mt-12" style={{ color: pnl >= 0 ? "var(--color-success)" : "var(--color-danger)" }}>
-            {pnl >= 0 ? "+" : ""}{pnl.toFixed(6)} ETH
+            {pnl >= 0 ? "+" : ""}{pnl.toFixed(6)} SOL
           </div>
           <div className="muted text-sm">{pnlPct >= 0 ? "+" : ""}{pnlPct.toFixed(2)}%</div>
         </div>
@@ -241,7 +241,7 @@ export function InvestmentDetailPage({
               </div>
               <div className="text-sm">
                 <div className="muted">Market valuation</div>
-                <div className="fw-700 mt-12 mono">{Number(property.marketValueEth).toFixed(6)} ETH</div>
+                <div className="fw-700 mt-12 mono">{Number(property.marketValueEth).toFixed(6)} SOL</div>
               </div>
               <div className="text-sm">
                 <div className="muted">Free-value supply</div>
@@ -264,11 +264,11 @@ export function InvestmentDetailPage({
             <div className="col col-gap mt-24">
               <div className="row-between text-sm">
                 <span className="muted">Entry cost</span>
-                <strong className="mono">{holding.costEth.toFixed(6)} ETH</strong>
+                <strong className="mono">{holding.costEth.toFixed(6)} SOL</strong>
               </div>
               <div className="row-between text-sm">
                 <span className="muted">Current value</span>
-                <strong className="mono">{currentValueEth.toFixed(6)} ETH</strong>
+                <strong className="mono">{currentvalueEth.toFixed(6)} SOL</strong>
               </div>
               <div className="row-between text-sm">
                 <span className="muted">Acquired</span>
@@ -289,7 +289,7 @@ export function InvestmentDetailPage({
             <div className="col col-gap mt-24">
               <div className="row-between text-sm">
                 <span className="muted">Active liquidity</span>
-                <strong className="mono">{activeLiquidity.toFixed(6)} ETH</strong>
+                <strong className="mono">{activeLiquidity.toFixed(6)} SOL</strong>
               </div>
               <div className="row-between text-sm">
                 <span className="muted">Active units</span>

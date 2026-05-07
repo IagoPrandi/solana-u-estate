@@ -12,13 +12,13 @@ export const truncate = (s: string | undefined, head = 6, tail = 4) =>
 
 export const formatEth = (eth: string | number) => {
   const n = Number(eth);
-  if (n < 0.001) return n.toFixed(6) + " ETH";
-  if (n < 1) return n.toFixed(3) + " ETH";
-  return n.toFixed(2) + " ETH";
+  if (n < 0.001) return n.toFixed(6) + " SOL";
+  if (n < 1) return n.toFixed(3) + " SOL";
+  return n.toFixed(2) + " SOL";
 };
 
-export const formatUsd = (eth: string | number, rate = 2350) => {
-  const n = Number(eth) * rate;
+export const formatUsd = (sol: string | number, rate = 150) => {
+  const n = Number(sol) * rate;
   return n.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
@@ -26,8 +26,8 @@ export const formatUsd = (eth: string | number, rate = 2350) => {
   });
 };
 
-export const formatBrl = (eth: string | number, rate = 12450) => {
-  const n = Number(eth) * rate;
+export const formatBrl = (sol: string | number, rate = 780) => {
+  const n = Number(sol) * rate;
   return n.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",

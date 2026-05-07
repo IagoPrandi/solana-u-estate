@@ -40,7 +40,7 @@ export function buildPropertyDraftPreview(
     version: "1.0" as const,
     propertyLocalId: localPropertyId,
     ownerWallet: input.ownerWallet,
-    marketValueWei: parseDecimalToUnits(input.marketValueEth, 18).toString(),
+    marketValueWei: parseDecimalToUnits(input.marketValueEth, 9).toString(),
     linkedValueBps: input.linkedValueBps,
     address,
   };

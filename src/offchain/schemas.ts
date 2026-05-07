@@ -16,7 +16,7 @@ const marketValueSchema = z
   .min(1, "Market value is required.")
   .refine((value) => {
     try {
-      parseDecimalToUnits(value, 18);
+      parseDecimalToUnits(value, 9);
       return true;
     } catch {
       return false;
@@ -330,6 +330,39 @@ export type PropertyDraftPreview = {
   documentsHash: string;
 };
 
+export type LocalSolanaListing = {
+  localPropertyId: string;
+  propertyId: string;
+  listingId: string;
+  amount: string;
+  priceLamports: string;
+  sellerWallet: string;
+  listingAddress?: string;
+  valueMint?: string;
+  escrowAuthority?: string;
+  escrowTokenAccount?: string;
+  createdSignature: string;
+  status: "Active" | "Filled" | "Cancelled";
+  syncStatus: "confirmed" | "finalized" | "stale";
+  listedAt: string;
+};
+
+export type LocalSolanaTransaction = {
+  signature: string;
+  localPropertyId?: string;
+  propertyId?: string;
+  listingId?: string;
+  kind:
+    | "registration"
+    | "mockVerification"
+    | "tokenization"
+    | "primarySaleListing"
+    | "primarySalePurchase"
+    | "primarySaleCancellation";
+  syncStatus: "confirmed" | "finalized" | "stale" | "failed";
+  createdAt: string;
+};
+
 export type SavedPropertyRecord = PropertyDraftPreview & {
   createdAt: string;
   documents: StoredMockDocument[];
@@ -368,7 +401,13 @@ export type SavedPropertyRecord = PropertyDraftPreview & {
       listingId: string;
       amount: string;
       priceWei: string;
+      priceLamports?: string;
       txHash: string;
+      createdSignature?: string;
+      listingAddress?: string;
+      escrowAuthority?: string;
+      escrowTokenAccount?: string;
+      syncStatus?: "confirmed" | "finalized" | "stale";
       status: "Active" | "Filled" | "Cancelled";
       listedAt: string;
       buyerWallet?: string;
@@ -416,6 +455,7 @@ export type FiatRatesResponse =
 
 export type OffchainDatabase = {
   properties: SavedPropertyRecord[];
+  solanaTransactions: LocalSolanaTransaction[];
   fiatRatesCache: FiatRatesSnapshot;
 };
 

@@ -38,7 +38,7 @@ const baseProperty: Property = {
     {
       buyerWallet: "11111111111111111111111111111114",
       freeValueUnits: "5000",
-      totalPaidWei: "5000000000000000",
+      totalPaidWei: "5000000",
       lastPurchaseTxHash:
         "7777777777777777777777777777777777777777777777777777777777777777",
       acquiredAt: "2026-05-05T00:16:39.041Z",
