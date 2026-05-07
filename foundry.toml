@@ -1,0 +1,17 @@
+[profile.default]
+src = "contracts/src"
+test = "contracts/test"
+script = "contracts/script"
+out = "contracts/out"
+libs = ["contracts/lib"]
+solc_version = "0.8.30"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = true
+quote_style = "double"

@@ -1,0 +1,323 @@
+{
+  "properties": [
+    {
+      "localPropertyId": "533d53b5-d115-49a1-bfda-7895c3be043c",
+      "ownerWallet": "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+      "marketValueWei": "5000000000000000000",
+      "linkedValueBps": 1500,
+      "address": {
+        "street": "dfd",
+        "number": "90",
+        "city": "oz",
+        "state": "sp",
+        "country": "Brasil",
+        "postalCode": "00000-000"
+      },
+      "location": {
+        "lat": "0.000000",
+        "lng": "0.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_owner_id",
+          "filename": "mock_matricula_imovel.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-05T01:39:56.542Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "533d53b5-d115-49a1-bfda-7895c3be043c",
+        "ownerWallet": "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+        "marketValueWei": "5000000000000000000",
+        "linkedValueBps": 1500,
+        "address": {
+          "street": "dfd",
+          "number": "90",
+          "city": "oz",
+          "state": "sp",
+          "country": "Brasil",
+          "postalCode": "00000-000"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "533d53b5-d115-49a1-bfda-7895c3be043c",
+        "lat": "0.000000",
+        "lng": "0.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "533d53b5-d115-49a1-bfda-7895c3be043c",
+        "documents": [
+          {
+            "type": "mock_owner_id",
+            "filename": "mock_matricula_imovel.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0xddf6b2710dea0cda4fb7985ba794dd8862a62f17f54640941b77f2684b941e3c",
+      "locationHash": "0x339262c9c8c1173d44e799641cbd3589027b63f29d76087927ffa252b331d112",
+      "documentsHash": "0x8d6acd242dca17eb307d98d3e1798452bfd823416c0487b93cbe3ebdc92d65a7",
+      "createdAt": "2026-05-05T01:39:56.542Z",
+      "onchainRegistration": {
+        "propertyId": "2",
+        "txHash": "0xb3c94bc2ce567b0534a4c1d6345467d168aa517efb0b205f6df070ccc45c1fe3",
+        "status": "ActiveSale",
+        "registeredAt": "2026-05-05T01:40:14.758Z",
+        "verificationTxHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-05T01:40:47.312Z",
+        "tokenizationTxHash": "0xe5cf0dffa3ab31fc6a7158006de1437119d414fbddb1169e6d6a255546184217",
+        "tokenizedAt": "2026-05-05T01:41:27.337Z",
+        "valueTokenAddress": "0x83f78748d457e5dC5d3538e663D9DCdBF74dd790",
+        "usufructTokenId": "2",
+        "linkedValueUnits": "150000",
+        "freeValueUnits": "850000",
+        "activeEscrowedAmount": "227000",
+        "activeListingsCount": "2",
+        "totalFreeValueSold": "143000",
+        "primarySaleListings": [
+          {
+            "listingId": "3",
+            "amount": "77000",
+            "priceWei": "385000000000000000",
+            "txHash": "0x66383977b98f5f2bc1ce87e3637fc7447d2e860e95c964e36db0bde33ee5a84e",
+            "status": "Active",
+            "listedAt": "2026-05-05T01:43:16.493Z",
+            "buyerWallet": "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+            "purchaseTxHash": "0xfb4f23804a98fff2ea41dccea22b3a1ca4c419a16fb862eb34b4ee88e2affba0",
+            "purchasedAt": "2026-05-05T01:50:04.536Z"
+          },
+          {
+            "listingId": "2",
+            "amount": "150000",
+            "priceWei": "750000000000000000",
+            "txHash": "0xdc21fbdc7ec011261d428b5a1a6831a8698441a42b2966ba9ce9000c3d5b80de",
+            "status": "Active",
+            "listedAt": "2026-05-05T01:42:16.568Z"
+          }
+        ],
+        "sellerReceivedWei": "715000000000000000",
+        "buyerBalances": [
+          {
+            "buyerWallet": "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+            "freeValueUnits": "143000",
+            "totalPaidWei": "715000000000000000",
+            "lastPurchaseTxHash": "0xfb4f23804a98fff2ea41dccea22b3a1ca4c419a16fb862eb34b4ee88e2affba0",
+            "acquiredAt": "2026-05-05T01:50:04.536Z"
+          }
+        ]
+      }
+    },
+    {
+      "localPropertyId": "ad0d3326-98b7-4795-a4d7-f84d4d31e435",
+      "ownerWallet": "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+      "marketValueWei": "1000000000000000000",
+      "linkedValueBps": 2000,
+      "address": {
+        "street": "vila2",
+        "number": "102",
+        "city": "os",
+        "state": "sp",
+        "country": "Brasil",
+        "postalCode": "00000-000"
+      },
+      "location": {
+        "lat": "0.000000",
+        "lng": "0.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "mock_matricula_imovel.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-04T23:46:42.262Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "ad0d3326-98b7-4795-a4d7-f84d4d31e435",
+        "ownerWallet": "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+        "marketValueWei": "1000000000000000000",
+        "linkedValueBps": 2000,
+        "address": {
+          "street": "vila2",
+          "number": "102",
+          "city": "os",
+          "state": "sp",
+          "country": "Brasil",
+          "postalCode": "00000-000"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "ad0d3326-98b7-4795-a4d7-f84d4d31e435",
+        "lat": "0.000000",
+        "lng": "0.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "ad0d3326-98b7-4795-a4d7-f84d4d31e435",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "mock_matricula_imovel.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0x017b4c7946bea9888507407674bba2988a818f946d5769ae5486bc0d4f5caf55",
+      "locationHash": "0xd5f6c9d453eb02db62e55d20a421df813983bbabbb02fe494393fb8312c9bbb2",
+      "documentsHash": "0xf7db6327125a9f402f6b275152b909002b4cf48f3dc8e3ec308519175d8df708",
+      "createdAt": "2026-05-04T23:46:42.262Z",
+      "onchainRegistration": {
+        "propertyId": "1",
+        "txHash": "0x394da23b1e6a492d3cf9c27ddd1d5d9aba5599d8e868fbd53a814d7a9e90b55b",
+        "status": "Tokenized",
+        "registeredAt": "2026-05-04T23:47:01.254Z",
+        "verificationTxHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-04T23:47:08.177Z",
+        "tokenizationTxHash": "0x62cb12d210f5fb8bd289d622f2571045e2f96639a121ec4999d1b8d9d5c446a4",
+        "tokenizedAt": "2026-05-04T23:48:05.722Z",
+        "valueTokenAddress": "0xE97F518E3FCc88b902a6241e77Fd7239dFd38c30",
+        "usufructTokenId": "1",
+        "linkedValueUnits": "200000",
+        "freeValueUnits": "800000",
+        "activeEscrowedAmount": "0",
+        "activeListingsCount": "0",
+        "totalFreeValueSold": "5000",
+        "primarySaleListings": [
+          {
+            "listingId": "1",
+            "amount": "395000",
+            "priceWei": "395000000000000000",
+            "txHash": "0x0567d7d8a92435c02179af8bc25fe6eb39c96d9ccc6801e625fb6ff8002cbd49",
+            "status": "Cancelled",
+            "listedAt": "2026-05-05T00:15:52.504Z",
+            "buyerWallet": "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+            "purchaseTxHash": "0x430f39e8e6313f672e4dd7883cb6c5822113a6c383ec0c43528205ab0dc8d835",
+            "purchasedAt": "2026-05-05T00:16:39.041Z"
+          }
+        ],
+        "sellerReceivedWei": "5000000000000000",
+        "buyerBalances": [
+          {
+            "buyerWallet": "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
+            "freeValueUnits": "5000",
+            "totalPaidWei": "5000000000000000",
+            "lastPurchaseTxHash": "0x430f39e8e6313f672e4dd7883cb6c5822113a6c383ec0c43528205ab0dc8d835",
+            "acquiredAt": "2026-05-05T00:16:39.041Z"
+          }
+        ]
+      }
+    },
+    {
+      "localPropertyId": "66612ef3-8d61-4922-8c2c-19b160581fc4",
+      "ownerWallet": "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+      "marketValueWei": "1000000000000000000",
+      "linkedValueBps": 2000,
+      "address": {
+        "street": "vila",
+        "number": "109",
+        "city": "osa",
+        "state": "sp",
+        "country": "Brasil",
+        "postalCode": "00000-000"
+      },
+      "location": {
+        "lat": "0.000000",
+        "lng": "0.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "mock_laudo_avaliacao_simplificado.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-04T23:28:18.054Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "66612ef3-8d61-4922-8c2c-19b160581fc4",
+        "ownerWallet": "0x38492e42908BF4EA35aB2baBd6DD95bbd2D7b907",
+        "marketValueWei": "1000000000000000000",
+        "linkedValueBps": 2000,
+        "address": {
+          "street": "vila",
+          "number": "109",
+          "city": "osa",
+          "state": "sp",
+          "country": "Brasil",
+          "postalCode": "00000-000"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "66612ef3-8d61-4922-8c2c-19b160581fc4",
+        "lat": "0.000000",
+        "lng": "0.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "66612ef3-8d61-4922-8c2c-19b160581fc4",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "mock_laudo_avaliacao_simplificado.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0x8bb1d312cb2942f5cb550707f536009e6289c5d2b558e4bbacec168d96593d12",
+      "locationHash": "0xe3cce300a006dc778058ff99fd5008dec7044b98b953df61f136c19d5b1c52fa",
+      "documentsHash": "0x71f32b5ba2d3ad75a11e417ea58d042ec947205f116ee325025a13e445d7354f",
+      "createdAt": "2026-05-04T23:28:18.054Z",
+      "onchainRegistration": {
+        "propertyId": "6",
+        "txHash": "0xc9a3ed6a627e975e4080db057f5878408f1e9c749531011c8c6ddb84357422ad",
+        "status": "ActiveSale",
+        "registeredAt": "2026-05-04T23:28:40.430Z",
+        "verificationTxHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-04T23:28:59.196Z",
+        "tokenizationTxHash": "0xf4d45f45e2ba15d4b73f94b3a236281c9a391d00468d92526a29ace84db3f098",
+        "tokenizedAt": "2026-05-04T23:29:48.697Z",
+        "valueTokenAddress": "0xceC2b869924C62715e01116BB116806c4619d009",
+        "usufructTokenId": "6",
+        "linkedValueUnits": "200000",
+        "freeValueUnits": "800000",
+        "activeEscrowedAmount": "400000",
+        "activeListingsCount": "1",
+        "totalFreeValueSold": "0",
+        "primarySaleListings": [
+          {
+            "listingId": "3",
+            "amount": "400000",
+            "priceWei": "400000000000000000",
+            "txHash": "0x390b9ab6acf80b514b3da3739f8a5dcbeda4aabaec74497ccb2898e20394d267",
+            "status": "Active",
+            "listedAt": "2026-05-04T23:30:16.080Z"
+          }
+        ]
+      }
+    }
+  ],
+  "fiatRatesCache": {
+    "provider": "okx",
+    "base": "ETH",
+    "routes": {
+      "usd": "ETH-USDC",
+      "brl": "ETH-USDC * USDC-BRL"
+    },
+    "rates": {
+      "usd": "2323.16",
+      "brl": "11546.1052"
+    },
+    "unavailable": [],
+    "optionalRates": {
+      "eur": null,
+      "jpy": null
+    },
+    "updatedAt": "2026-05-03T14:03:35.609Z"
+  }
+}
