@@ -8,7 +8,13 @@ import {
   type Signer,
   type TransactionInstruction,
 } from "@solana/web3.js";
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  ACCOUNT_SIZE,
+  getAssociatedTokenAddressSync,
+  MINT_SIZE,
+  TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import type { SavedPropertyRecord } from "@/offchain/schemas";
 import type { PropertyDocument, TxStep } from "./types";
 import type { WalletState } from "./wallet";
@@ -31,6 +37,7 @@ import {
 import { getErrorMessage, summarizeProgramLogs } from "./error-utils";
 import { patchOnchainSync } from "./onchain";
 import { assertFreshPrimarySalePurchase } from "./transaction-guards";
+import { ACCOUNT_SPACE } from "@/lib/solana/offsets";
 
 export type NewPropertyForm = {
   marketValueEth: string;
@@ -90,6 +97,7 @@ export type UEstateActions = {
 export function useUEstateActions(wallet: WalletState): UEstateActions {
   const { connection } = useConnection();
   const solanaWallet = useSolanaWallet();
+  const defaultPubkey = PublicKey.default;
 
   const formatApiFieldErrors = (details: unknown) => {
     if (!details || typeof details !== "object") return null;
@@ -227,6 +235,51 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     }
   };
 
+  const getTokenizationMinimumLamports = async () => {
+    const [mintRent, ownerAtaRent, usufructPositionRent] = await Promise.all([
+      connection.getMinimumBalanceForRentExemption(MINT_SIZE, "confirmed"),
+      connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE, "confirmed"),
+      connection.getMinimumBalanceForRentExemption(
+        ACCOUNT_SPACE.usufructPosition,
+        "confirmed",
+      ),
+    ]);
+
+    return (
+      BigInt(mintRent) +
+      BigInt(ownerAtaRent) +
+      BigInt(usufructPositionRent) +
+      10_000_000n
+    );
+  };
+
+  const assertCanTokenizeProperty = async (
+    propertyId: bigint,
+    owner: PublicKey,
+  ) => {
+    const property = await fetchPropertyAccount(connection, propertyId);
+    if (!property) {
+      throw new Error(
+        "Property account was not found on-chain. Refresh before tokenization.",
+      );
+    }
+    if (!property.owner.equals(owner)) {
+      throw new Error("Only the on-chain property owner can tokenize this property.");
+    }
+    if (property.status !== "MockVerified") {
+      throw new Error(
+        property.status === "PendingMockVerification"
+          ? "Approve mock verification before tokenization."
+          : `Property cannot be tokenized from status ${property.status}. Refresh before trying again.`,
+      );
+    }
+    if (!property.valueMint.equals(defaultPubkey)) {
+      throw new Error("Property already has a value mint on-chain. Refresh before tokenization.");
+    }
+
+    await ensureSolBalance(await getTokenizationMinimumLamports());
+  };
+
   const createDraft = async (form: NewPropertyForm) => {
     const ownerWallet = requireWallet().toBase58();
     const payload = {
@@ -332,6 +385,7 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     tokenize: async (localPropertyId, onchainPropertyId, onStep) => {
       const publicKey = requireWallet();
       const propertyId = BigInt(onchainPropertyId);
+      await assertCanTokenizeProperty(propertyId, publicKey);
       const valueMint = Keypair.generate();
       const { instruction } = tokenizePropertyIx({
         propertyId,
