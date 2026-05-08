@@ -361,11 +361,14 @@ export function ListingDetailPage({
     Boolean(walletAddress) &&
     walletAddress?.toLowerCase() === listing.seller.toLowerCase();
   const isOnchainLinked = Boolean(listing.localPropertyId);
-  const buyDisabled = isSellerWallet || (actions.ready && !isOnchainLinked);
+  const buyDisabled =
+    isSellerWallet || !actions.ready || (actions.ready && !isOnchainLinked);
   const buyDisabledMessage = isSellerWallet
     ? "Conecte uma carteira compradora diferente da carteira vendedora desta oferta."
+    : !actions.ready
+      ? "Connect a Solana Devnet wallet with the configured program before buying a listing."
     : actions.ready && !isOnchainLinked
-      ? "Esta oferta e apenas demonstrativa ou esta fora do deploy atual. Atualize os dados antes de comprar on-chain."
+      ? "This listing is not linked to the current local on-chain record. Refresh before buying."
       : null;
 
   const start = async () => {
