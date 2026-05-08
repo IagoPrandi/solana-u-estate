@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { AppActions } from "./app";
 import { formatBrl, formatEth, formatUnits, formatUsd } from "./data";
+import { getErrorMessage } from "./error-utils";
 import { listingIdentity } from "./listing-identity";
 import {
   IconArrowRight,
@@ -91,14 +92,12 @@ export function PropertyDetailPage({
   listings,
   actions,
   wallet,
-  chainMode,
 }: {
   property: Property | undefined;
   navigate: Navigate;
   listings: Listing[];
   actions: AppActions;
   wallet: WalletState;
-  chainMode: boolean;
 }) {
   const [showTech, setShowTech] = useState(false);
   const [tx, setTx] = useState<{
@@ -108,7 +107,6 @@ export function PropertyDetailPage({
   }>({ open: false, step: "sign", title: "" });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const txPending = isTxPending(tx.open, tx.step);
-  void chainMode;
 
   const runChainAction = async (
     title: string,
@@ -121,9 +119,7 @@ export function PropertyDetailPage({
       await fn((s) => setTx((prev) => ({ ...prev, step: s })));
     } catch (error) {
       setTx({ open: false, step: "sign", title });
-      setErrorMessage(
-        error instanceof Error ? error.message : "Operação falhou.",
-      );
+      setErrorMessage(getErrorMessage(error, "Operação falhou."));
     }
   };
   if (!property)
@@ -1036,9 +1032,7 @@ export function PropertyPublishPage({
       );
     } catch (error) {
       setTx({ open: false, step: "sign" });
-      setErrorMessage(
-        error instanceof Error ? error.message : "Falha ao publicar oferta.",
-      );
+      setErrorMessage(getErrorMessage(error, "Falha ao publicar oferta."));
     }
   };
   const finish = () => {

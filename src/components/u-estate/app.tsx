@@ -8,11 +8,7 @@ import { DashboardPage } from "./dashboard";
 import {
   formatBrl,
   formatUsd,
-  initialListings,
-  initialProperties,
-  initialTransactions,
   initialUser,
-  shortHash,
 } from "./data";
 import { LandingPage } from "./landing";
 import { getWalletHoldingForProperty } from "./holdings";
@@ -54,7 +50,7 @@ export type StepCb = (step: TxStep) => void;
 
 export type AppActions = {
   ready: boolean;
-  /** Single submit handler. In chain mode persists draft + registers; in mock mode just appends a property. */
+  /** Single submit handler. Persists a draft and submits the on-chain registration transaction. */
   submitProperty: (form: NewPropertyForm, onStep: StepCb) => Promise<Property>;
   verifyProperty: (
     localId: string,
@@ -88,62 +84,14 @@ export type AppActions = {
 
 const TOTAL_VALUE_UNITS = 1_000_000;
 
-async function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function mockTxFlow(onStep: StepCb) {
-  onStep("sign");
-  await delay(700);
-  onStep("sent");
-  await delay(700);
-  onStep("confirming");
-  await delay(900);
-  onStep("done");
-}
-
-function upsertBuyerBalance(
-  balances: Property["buyerBalances"] | undefined,
-  buyerWallet: string,
-  units: number,
-  priceWei: bigint,
-  txHash: string,
-) {
-  const now = new Date().toISOString();
-  const existing = balances ?? [];
-  const index = existing.findIndex(
-    (balance) => balance.buyerWallet.toLowerCase() === buyerWallet.toLowerCase(),
-  );
-  const next = {
-    buyerWallet,
-    freeValueUnits: String(units),
-    totalPaidWei: priceWei.toString(),
-    lastPurchaseTxHash: txHash,
-    acquiredAt: now,
-  };
-  if (index === -1) return [next, ...existing];
-  return existing.map((balance, i) =>
-    i === index
-      ? {
-          ...balance,
-          freeValueUnits: String(Number(balance.freeValueUnits) + units),
-          totalPaidWei: (BigInt(balance.totalPaidWei) + priceWei).toString(),
-          lastPurchaseTxHash: txHash,
-          acquiredAt: now,
-        }
-      : balance,
-  );
-}
-
 export function UEstateApp() {
   const wallet = useWallet();
   const actions = useUEstateActions(wallet);
 
   const [route, setRoute] = useState<Route>({ name: "landing", params: {} });
-  const [properties, setProperties] = useState<Property[]>(initialProperties);
-  const [listings, setListings] = useState<Listing[]>(initialListings);
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(initialTransactions);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [userBase, setUser] = useState<User>(initialUser);
   const [role, setRole] = useState<Role>("owner");
   const user = useMemo<User>(
@@ -151,7 +99,6 @@ export function UEstateApp() {
       wallet.address ? { ...userBase, wallet: wallet.address } : userBase,
     [userBase, wallet.address],
   );
-  const [chainMode, setChainMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const navigate: Navigate = useCallback((name: RouteName, params = {}) => {
@@ -173,27 +120,20 @@ export function UEstateApp() {
   const refreshFromApi = useCallback(async () => {
     try {
       const records = await fetchProperties();
-      if (records.length === 0) return false;
       setProperties(records.map(recordToProperty));
       setListings(recordsToListings(records));
       setTransactions(recordsToTransactions(records));
-      setChainMode(true);
       return true;
     } catch {
+      setProperties([]);
+      setListings([]);
+      setTransactions([]);
       return false;
     }
   }, []);
 
   useEffect(() => {
-    if (wallet.address) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      void refreshFromApi();
-    } else {
-      setProperties(initialProperties);
-      setListings(initialListings);
-      setTransactions(initialTransactions);
-      setChainMode(false);
-    }
+    void refreshFromApi();
     // Whenever the wallet identity changes, drop any in-progress per-property
     // route so the user does not stay on a foreign wallet's detail/publish page.
     setRoute((prev) =>
@@ -220,200 +160,79 @@ export function UEstateApp() {
 
   const submitProperty = useCallback<AppActions["submitProperty"]>(
     async (form, onStep) => {
-      if (actions.ready) {
-        const record = await actions.submitProperty(form, onStep);
-        applyRecord(record);
-        await refreshFromApi();
-        return recordToProperty(record);
+      if (!actions.ready) {
+        throw new Error(
+          "Connect a Solana Devnet wallet with the configured program before registering a property.",
+        );
       }
 
-      // Mock fallback
-      await mockTxFlow(onStep);
-      const linkedValueBps = Math.round(form.reservedPct * 100);
-      const linkedUnits = Math.round(
-        TOTAL_VALUE_UNITS * (form.reservedPct / 100),
-      );
-      const id = "prop-" + Date.now();
-      const property: Property = {
-        id,
-        propertyId: String(Math.floor(Math.random() * 1000) + 10),
-        title:
-          form.street && form.number
-            ? `${form.street}, ${form.number}`
-            : form.street || `Imóvel ${id.slice(-4)}`,
-        street: form.street,
-        number: form.number,
-        city: form.city,
-        state: form.state,
-        country: form.country,
-        postalCode: form.postalCode,
-        lat: form.lat || "-23.55",
-        lng: form.lng || "-46.63",
-        description: form.description,
-        marketValueEth: form.marketValueEth,
-        linkedValueBps,
-        totalValueUnits: TOTAL_VALUE_UNITS,
-        linkedValueUnits: linkedUnits,
-        freeValueUnits: TOTAL_VALUE_UNITS - linkedUnits,
-        soldFreeValueUnits: 0,
-        activeListings: 0,
-        status: "PendingMockVerification",
-        thumbVariant: "mix",
-        documents: form.documents,
-        metadataHash: shortHash(),
-        documentsHash: shortHash(),
-        locationHash: shortHash(),
-        createdAt: new Date().toISOString(),
-        ownerWallet: wallet.address ?? undefined,
-      };
-      setProperties((prev) => [property, ...prev]);
-      setTransactions((prev) => [
-        {
-          id: "tx-" + Date.now(),
-          type: "Cadastro",
-          propertyTitle: property.title,
-          valueEth: null,
-          status: "Confirmado",
-          date: new Date().toISOString(),
-          txHash: shortHash(),
-        },
-        ...prev,
-      ]);
-      return property;
+      const record = await actions.submitProperty(form, onStep);
+      applyRecord(record);
+      await refreshFromApi();
+      return recordToProperty(record);
     },
-    [actions, applyRecord, refreshFromApi, wallet.address],
+    [actions, applyRecord, refreshFromApi],
   );
 
   const verifyProperty = useCallback<AppActions["verifyProperty"]>(
     async (localId, onchainId, onStep) => {
-      if (actions.ready && onchainId && onchainId !== "0") {
-        const record = await actions.mockVerify(localId, onchainId, onStep);
-        applyRecord(record);
-        await refreshFromApi();
-        return;
+      if (!actions.ready) {
+        throw new Error(
+          "Connect a Solana Devnet wallet with the configured program before verifying a property.",
+        );
       }
-      await mockTxFlow(onStep);
-      setProperties((prev) =>
-        prev.map((p) =>
-          p.id === localId ? { ...p, status: "MockVerified" } : p,
-        ),
-      );
-      const target = properties.find((p) => p.id === localId);
-      setTransactions((prev) => [
-        {
-          id: "tx-" + Date.now(),
-          type: "Análise concluída",
-          propertyTitle: target?.title ?? "—",
-          valueEth: null,
-          status: "Confirmado",
-          date: new Date().toISOString(),
-          txHash: shortHash(),
-        },
-        ...prev,
-      ]);
+      if (!onchainId || onchainId === "0") {
+        throw new Error("Property must be registered on-chain before verification.");
+      }
+      const record = await actions.mockVerify(localId, onchainId, onStep);
+      applyRecord(record);
+      await refreshFromApi();
     },
-    [actions, applyRecord, properties, refreshFromApi],
+    [actions, applyRecord, refreshFromApi],
   );
 
   const tokenizeProperty = useCallback<AppActions["tokenizeProperty"]>(
     async (localId, onchainId, onStep) => {
-      if (actions.ready && onchainId && onchainId !== "0") {
-        const record = await actions.tokenize(localId, onchainId, onStep);
-        applyRecord(record);
-        await refreshFromApi();
-        return;
+      if (!actions.ready) {
+        throw new Error(
+          "Connect a Solana Devnet wallet with the configured program before tokenizing a property.",
+        );
       }
-      await mockTxFlow(onStep);
-      setProperties((prev) =>
-        prev.map((p) =>
-          p.id === localId
-            ? {
-                ...p,
-                status: "Tokenized",
-                valueTokenAddress: p.valueTokenAddress ?? shortHash(),
-                usufructTokenId: p.usufructTokenId ?? p.propertyId,
-              }
-            : p,
-        ),
-      );
-      const target = properties.find((p) => p.id === localId);
-      setTransactions((prev) => [
-        {
-          id: "tx-" + Date.now(),
-          type: "Pronto pra publicar",
-          propertyTitle: target?.title ?? "—",
-          valueEth: null,
-          status: "Confirmado",
-          date: new Date().toISOString(),
-          txHash: shortHash(),
-        },
-        ...prev,
-      ]);
+      if (!onchainId || onchainId === "0") {
+        throw new Error("Property must be registered on-chain before tokenization.");
+      }
+      const record = await actions.tokenize(localId, onchainId, onStep);
+      applyRecord(record);
+      await refreshFromApi();
     },
-    [actions, applyRecord, properties, refreshFromApi],
+    [actions, applyRecord, refreshFromApi],
   );
 
   const publishListing = useCallback<AppActions["publishListing"]>(
     async (localId, onchainId, units, onStep) => {
-      if (actions.ready && onchainId && onchainId !== "0") {
-        const record = await actions.publishListing(
-          localId,
-          onchainId,
-          units,
-          onStep,
+      if (!actions.ready) {
+        throw new Error(
+          "Connect a Solana Devnet wallet with the configured program before publishing a listing.",
         );
-        applyRecord(record);
-        await refreshFromApi();
-        const created = recordsToListings([record]).find(
-          (l) => Number(l.amount) === units,
-        );
-        if (!created) throw new Error("Listing não encontrado após sync.");
-        return created;
       }
-      await mockTxFlow(onStep);
-      const target = properties.find((p) => p.id === localId);
-      if (!target) throw new Error("Imóvel não encontrado.");
-      const priceEth =
-        Number(target.marketValueEth) * (units / target.totalValueUnits);
-      const listing: Listing = {
-        listingId: String(Math.floor(Math.random() * 9999)),
-        localPropertyId: target.id,
-        propertyId: target.propertyId,
-        amount: units,
-        priceWei: priceEth.toFixed(6),
-        seller: user.wallet,
-        status: "Active",
-        listedAt: new Date().toISOString(),
-        txHash: shortHash(),
-      };
-      setListings((prev) => [listing, ...prev]);
-      setProperties((prev) =>
-        prev.map((p) =>
-          p.id === localId
-            ? {
-                ...p,
-                status: "ActiveSale",
-                activeListings: (p.activeListings || 0) + 1,
-                valueTokenAddress: p.valueTokenAddress ?? shortHash(),
-              }
-            : p,
-        ),
+      if (!onchainId || onchainId === "0") {
+        throw new Error("Property must be registered on-chain before listing publication.");
+      }
+      const record = await actions.publishListing(
+        localId,
+        onchainId,
+        units,
+        onStep,
       );
-      setTransactions((prev) => [
-        {
-          id: "tx-" + Date.now(),
-          type: "Oferta publicada",
-          propertyTitle: target.title,
-          valueEth: priceEth.toFixed(6),
-          status: "Confirmado",
-          date: new Date().toISOString(),
-          txHash: listing.txHash,
-        },
-        ...prev,
-      ]);
-      return listing;
+      applyRecord(record);
+      await refreshFromApi();
+      const created = recordsToListings([record]).find(
+        (listing) => Number(listing.amount) === units,
+      );
+      if (!created) throw new Error("Listing not found after sync.");
+      return created;
     },
-    [actions, applyRecord, properties, refreshFromApi, user.wallet],
+    [actions, applyRecord, refreshFromApi],
   );
 
   const buyListing = useCallback<AppActions["buyListing"]>(
@@ -421,99 +240,43 @@ export function UEstateApp() {
       const listing = listings.find((l) => l.listingId === listingId);
       if (!listing) throw new Error("Oferta não encontrada.");
 
-      if (actions.ready) {
-        if (!listing.localPropertyId || listing.localPropertyId !== localId) {
-          throw new Error(
-            "Esta oferta não está vinculada ao registro on-chain local atual. Atualize os dados antes de comprar.",
-          );
-        }
-        const record = await actions.buyListing(
-          localId,
-          listingId,
-          units,
-          priceWei,
-          onStep,
-        );
-        applyRecord(record);
-        await refreshFromApi();
-        return;
-      }
-
-      await mockTxFlow(onStep);
-      const newAmount = listing.amount - units;
-      const txHash = shortHash();
-      setListings((prev) =>
-        prev.map((l) =>
-          l.listingId === listingId
-            ? {
-                ...l,
-                amount: newAmount,
-                status: newAmount === 0 ? "Filled" : "Active",
-              }
-            : l,
-        ),
-      );
-      const prop = properties.find(
-        (p) => p.propertyId === listing.propertyId,
-      );
-      if (prop) {
-        setProperties((prev) =>
-          prev.map((p) =>
-            p.id === prop.id
-              ? {
-                  ...p,
-                  soldFreeValueUnits: p.soldFreeValueUnits + units,
-                  buyerBalances: upsertBuyerBalance(
-                    p.buyerBalances,
-                    user.wallet,
-                    units,
-                    priceWei,
-                    txHash,
-                  ),
-                }
-              : p,
-          ),
+      if (!actions.ready) {
+        throw new Error(
+          "Connect a Solana Devnet wallet with the configured program before buying a listing.",
         );
       }
-      setTransactions((prev) => [
-        {
-          id: "tx-" + Date.now(),
-          type: "Investimento",
-          localPropertyId: prop?.id,
-          propertyId: prop?.propertyId,
-          ownerWallet: prop?.ownerWallet,
-          sellerWallet: listing.seller,
-          buyerWallet: user.wallet,
-          propertyTitle: prop?.title ?? "—",
-          valueEth: lamportsToSolDecimal(priceWei, 8),
-          status: "Confirmado",
-          date: new Date().toISOString(),
-          txHash,
-        },
-        ...prev,
-      ]);
+      if (!listing.localPropertyId || listing.localPropertyId !== localId) {
+        throw new Error(
+          "This listing is not linked to the current local on-chain record. Refresh before buying.",
+        );
+      }
+      const record = await actions.buyListing(
+        localId,
+        listingId,
+        units,
+        priceWei,
+        onStep,
+      );
+      applyRecord(record);
+      await refreshFromApi();
     },
-    [actions, applyRecord, listings, properties, refreshFromApi, user.wallet],
+    [actions, applyRecord, listings, refreshFromApi],
   );
 
   const cancelListing = useCallback<AppActions["cancelListing"]>(
     async (localId, listingId, onStep) => {
-      if (actions.ready) {
-        const record = await actions.cancelListing(
-          localId,
-          listingId,
-          onStep,
+      if (!actions.ready) {
+        throw new Error(
+          "Connect a Solana Devnet wallet with the configured program before cancelling a listing.",
         );
-        applyRecord(record);
-        await refreshFromApi();
-        return;
       }
-      await mockTxFlow(onStep);
-      setListings((prev) =>
-        prev.map((l) =>
-          l.listingId === listingId ? { ...l, status: "Cancelled" } : l,
-        ),
+      const record = await actions.cancelListing(
+        localId,
+        listingId,
+        onStep,
       );
+      applyRecord(record);
+      await refreshFromApi();
     },
     [actions, applyRecord, refreshFromApi],
   );
@@ -619,7 +382,6 @@ export function UEstateApp() {
             listings={listings}
             actions={appActions}
             wallet={wallet}
-            chainMode={chainMode}
           />
         );
       case "property-publish":
@@ -711,23 +473,6 @@ export function UEstateApp() {
           wallet={wallet}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
         />
-        {!chainMode && (
-          <div
-            className="card card-pad"
-            style={{
-              margin: "0 32px 16px",
-              background: "var(--color-warning-soft)",
-              borderColor: "var(--color-warning)",
-              color: "var(--color-warning)",
-            }}
-          >
-            <div className="text-sm fw-700">Local simulation mode</div>
-            <div className="text-sm mt-12">
-              This view is not on-chain acceptance. Final demo acceptance
-              requires Solana Devnet signatures and on-chain reconciliation.
-            </div>
-          </div>
-        )}
         {renderPage()}
       </div>
     </div>

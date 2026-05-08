@@ -1,6 +1,98 @@
 {
   "properties": [
     {
+      "localPropertyId": "c44fde7b-da1a-495e-ba97-b7ffc61e57d8",
+      "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
+      "marketValueWei": "1000000000",
+      "linkedValueBps": 2000,
+      "address": {
+        "street": "r1",
+        "number": "1",
+        "city": "oz",
+        "state": "sp",
+        "country": "Brasil",
+        "postalCode": "243"
+      },
+      "location": {
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "IMG_5987.jpeg",
+          "mock": true,
+          "uploadedAt": "2026-05-08T01:55:29.354Z"
+        },
+        {
+          "type": "mock_owner_id",
+          "filename": "IMG_5987.jpeg",
+          "mock": true,
+          "uploadedAt": "2026-05-08T01:55:29.354Z"
+        },
+        {
+          "type": "mock_tax_record",
+          "filename": "IMG_5987.jpeg",
+          "mock": true,
+          "uploadedAt": "2026-05-08T01:55:29.354Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "c44fde7b-da1a-495e-ba97-b7ffc61e57d8",
+        "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
+        "marketValueWei": "1000000000",
+        "linkedValueBps": 2000,
+        "address": {
+          "street": "r1",
+          "number": "1",
+          "city": "oz",
+          "state": "sp",
+          "country": "Brasil",
+          "postalCode": "243"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "c44fde7b-da1a-495e-ba97-b7ffc61e57d8",
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "c44fde7b-da1a-495e-ba97-b7ffc61e57d8",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "IMG_5987.jpeg",
+            "mock": true
+          },
+          {
+            "type": "mock_owner_id",
+            "filename": "IMG_5987.jpeg",
+            "mock": true
+          },
+          {
+            "type": "mock_tax_record",
+            "filename": "IMG_5987.jpeg",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0x6aa8c21743c4db734e392843611f5bfb6b5e3cfa0f4d71d5d795fbb566ba1725",
+      "locationHash": "0x106096e2532d35c5383e90eb8024ef2fd36bdcb4c90b643ebb778ff3a6e07bdb",
+      "documentsHash": "0x0dfeee36112f1f4c10849c9362ef6ebd737f32df950b49990638dec9a620261c",
+      "createdAt": "2026-05-08T01:55:29.354Z",
+      "onchainRegistration": {
+        "propertyId": "8",
+        "txHash": "44h3qJ1HFybxNc44bbYxVsBpk6F9nGdse6ZuZ25kEc3QYpBL5Z6So9uStKgEU7FZiQvwDbQFSSBSxkLzo5wUnakk",
+        "status": "MockVerified",
+        "registeredAt": "2026-05-08T01:55:41.818Z",
+        "verificationTxHash": "1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-08T02:02:13.068Z"
+      }
+    },
+    {
       "localPropertyId": "533d53b5-d115-49a1-bfda-7895c3be043c",
       "ownerWallet": "0x20070C8a9881D8a63CBeF49B2205620c7fe1dD2a",
       "marketValueWei": "5000000000000000000",
@@ -319,5 +411,15 @@
       "jpy": null
     },
     "updatedAt": "2026-05-03T14:03:35.609Z"
-  }
+  },
+  "solanaTransactions": [
+    {
+      "signature": "44h3qJ1HFybxNc44bbYxVsBpk6F9nGdse6ZuZ25kEc3QYpBL5Z6So9uStKgEU7FZiQvwDbQFSSBSxkLzo5wUnakk",
+      "kind": "registration",
+      "localPropertyId": "c44fde7b-da1a-495e-ba97-b7ffc61e57d8",
+      "propertyId": "8",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-08T01:55:41.818Z"
+    }
+  ]
 }

@@ -35,11 +35,23 @@ type ValueCurrency = "SOL" | "usdc" | "usdt";
 
 const SOL_RATE = 2350; // USD per SOL
 
+function normalizeDecimal(raw: string) {
+  return raw.trim().replace(/,/g, ".");
+}
+
 function toSOL(raw: string, currency: ValueCurrency): string {
-  const n = Number(raw);
+  const normalized = normalizeDecimal(raw);
+  const n = Number(normalized);
   if (!raw || isNaN(n) || n <= 0) return "";
-  if (currency === "SOL") return raw;
+  if (currency === "SOL") return normalized;
   return (n / SOL_RATE).toFixed(6);
+}
+
+function isCoordinate(value: string) {
+  const normalized = normalizeDecimal(value);
+  if (!normalized) return false;
+  const numericValue = Number(normalized);
+  return Number.isFinite(numericValue);
 }
 
 export function PropertiesPage({
@@ -250,12 +262,28 @@ export function PropertyNewPage({
   ];
 
   const marketValueEth = toSOL(data.marketValueInput, data.valueCurrency);
+  const requiredDocumentTypes = docTypes
+    .filter((documentType) => documentType.required)
+    .map((documentType) => documentType.type);
 
   const canNext = () => {
     if (step === 0)
-      return Boolean(data.title && marketValueEth && Number(marketValueEth) > 0);
-    if (step === 1) return Boolean(data.street && data.city && data.state);
-    if (step === 2) return data.documents.length >= 1;
+      return Boolean(marketValueEth && Number(marketValueEth) > 0);
+    if (step === 1)
+      return Boolean(
+        data.street.trim() &&
+          data.number.trim() &&
+          data.city.trim() &&
+          data.state.trim() &&
+          data.country.trim() &&
+          data.postalCode.trim() &&
+          isCoordinate(data.lat) &&
+          isCoordinate(data.lng),
+      );
+    if (step === 2)
+      return requiredDocumentTypes.every((type) =>
+        data.documents.some((document) => document.type === type),
+      );
     return true;
   };
 
@@ -306,7 +334,7 @@ export function PropertyNewPage({
   };
 
   const currencyHelp = () => {
-    const n = Number(data.marketValueInput);
+    const n = Number(normalizeDecimal(data.marketValueInput));
     if (!data.marketValueInput || isNaN(n) || n <= 0) {
       if (data.valueCurrency === "SOL")
         return "Valor de mercado estimado em SOL.";
@@ -533,6 +561,34 @@ export function PropertyNewPage({
                   estado.
                 </div>
               </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label className="field-label">Latitude</label>
+                  <input
+                    className="input mono"
+                    inputMode="decimal"
+                    placeholder="-23.550520"
+                    value={data.lat}
+                    onChange={(e) => update("lat", e.target.value)}
+                  />
+                  <span className="field-help">
+                    Use decimal coordinates for the private off-chain location record.
+                  </span>
+                </div>
+                <div className="field">
+                  <label className="field-label">Longitude</label>
+                  <input
+                    className="input mono"
+                    inputMode="decimal"
+                    placeholder="-46.633308"
+                    value={data.lng}
+                    onChange={(e) => update("lng", e.target.value)}
+                  />
+                  <span className="field-help">
+                    Example: Sao Paulo city center uses approximately -46.633308.
+                  </span>
+                </div>
+              </div>
             </div>
           )}
 
@@ -603,6 +659,7 @@ export function PropertyNewPage({
                       {has ? (
                         <button
                           className="btn btn-ghost btn-sm"
+                          type="button"
                           onClick={() =>
                             removeDoc(data.documents.indexOf(has))
                           }
@@ -612,6 +669,7 @@ export function PropertyNewPage({
                       ) : (
                         <button
                           className="btn btn-neutral btn-sm"
+                          type="button"
                           onClick={() => ref.current?.click()}
                         >
                           <IconUpload size={14} /> Anexar
@@ -754,6 +812,7 @@ export function PropertyNewPage({
           >
             <button
               className="btn btn-ghost"
+              type="button"
               disabled={txPending}
               onClick={() =>
                 step === 0 ? navigate("properties") : setStep((s) => s - 1)
@@ -764,6 +823,7 @@ export function PropertyNewPage({
             {step < 3 ? (
               <button
                 className="btn btn-primary"
+                type="button"
                 disabled={txPending || !canNext()}
                 onClick={() => setStep((s) => s + 1)}
               >
@@ -772,6 +832,7 @@ export function PropertyNewPage({
             ) : (
               <button
                 className="btn btn-primary"
+                type="button"
                 disabled={txPending}
                 onClick={() => {
                   void submit();

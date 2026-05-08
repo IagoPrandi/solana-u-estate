@@ -28,6 +28,7 @@ import {
   solDecimalToLamports,
   tokenizePropertyIx,
 } from "@/lib/solana/instructions";
+import { getErrorMessage, summarizeProgramLogs } from "./error-utils";
 import { patchOnchainSync } from "./onchain";
 import { assertFreshPrimarySalePurchase } from "./transaction-guards";
 
@@ -90,6 +91,27 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
   const { connection } = useConnection();
   const solanaWallet = useSolanaWallet();
 
+  const formatApiFieldErrors = (details: unknown) => {
+    if (!details || typeof details !== "object") return null;
+    const fieldErrors =
+      "fieldErrors" in details && typeof details.fieldErrors === "object"
+        ? details.fieldErrors
+        : null;
+    if (!fieldErrors) return null;
+
+    const messages = Object.entries(fieldErrors)
+      .flatMap(([field, errors]) =>
+        Array.isArray(errors)
+          ? errors
+              .filter((error): error is string => typeof error === "string")
+              .map((error) => `${field}: ${error}`)
+          : [],
+      )
+      .filter(Boolean);
+
+    return messages.length > 0 ? messages.join(" ") : null;
+  };
+
   const requireWallet = () => {
     if (!solanaWallet.publicKey || !wallet.address) {
       throw new Error("Connect a Solana wallet before sending transactions.");
@@ -109,14 +131,90 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     onStep("sign");
     const tx = new Transaction().add(...instructions);
     tx.feePayer = publicKey;
-    const signature = await solanaWallet.sendTransaction(tx, connection, {
-      signers,
-    });
-    onStep("sent");
-    onStep("confirming");
-    await connection.confirmTransaction(signature, "confirmed");
-    onStep("done");
-    return signature;
+    const latestBlockhash = await connection.getLatestBlockhash("confirmed");
+    tx.recentBlockhash = latestBlockhash.blockhash;
+
+    const readErrorLogs = async (error: unknown) => {
+      if (!error || typeof error !== "object") return null;
+
+      if ("getLogs" in error && typeof error.getLogs === "function") {
+        try {
+          const logs = await error.getLogs(connection);
+          if (Array.isArray(logs)) {
+            return logs.filter((line): line is string => typeof line === "string");
+          }
+        } catch {
+          return null;
+        }
+      }
+
+      if ("logs" in error && Array.isArray(error.logs)) {
+        return error.logs.filter((line): line is string => typeof line === "string");
+      }
+
+      return null;
+    };
+
+    const describeTransactionError = async (error: unknown) => {
+      const message = getErrorMessage(error, "Unexpected transaction error.");
+      const logs = await readErrorLogs(error);
+      const logSummary = logs ? summarizeProgramLogs(logs) : null;
+
+      if (!logSummary || message.includes(logSummary)) {
+        return message;
+      }
+
+      return `${message} ${logSummary}`;
+    };
+
+    const describeConfirmationFailure = async (
+      signature: string,
+      confirmationError: unknown,
+    ) => {
+      const txDetails = await connection.getTransaction(signature, {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      });
+      const logSummary = txDetails?.meta?.logMessages
+        ? summarizeProgramLogs(txDetails.meta.logMessages)
+        : null;
+      const detail =
+        logSummary ??
+        (confirmationError
+          ? JSON.stringify(confirmationError)
+          : "No program logs returned.");
+
+      return `Transaction failed on-chain. ${detail}`;
+    };
+
+    try {
+      const signature = await solanaWallet.sendTransaction(tx, connection, {
+        signers,
+        preflightCommitment: "confirmed",
+      });
+      onStep("sent");
+      onStep("confirming");
+
+      const confirmation = await connection.confirmTransaction(
+        {
+          signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        },
+        "confirmed",
+      );
+
+      if (confirmation.value.err) {
+        throw new Error(
+          await describeConfirmationFailure(signature, confirmation.value.err),
+        );
+      }
+
+      onStep("done");
+      return signature;
+    } catch (error) {
+      throw new Error(await describeTransactionError(error));
+    }
   };
 
   const ensureSolBalance = async (minimumLamports: bigint) => {
@@ -153,9 +251,16 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     });
     const body = (await response.json()) as
       | { record: SavedPropertyRecord }
-      | { error: string };
+      | { error: string; details?: unknown };
     if (!response.ok || !("record" in body)) {
-      throw new Error("error" in body ? body.error : "Could not save property draft.");
+      const details = "error" in body ? formatApiFieldErrors(body.details) : null;
+      throw new Error(
+        "error" in body
+          ? details
+            ? `${body.error} ${details}`
+            : body.error
+          : "Could not save property draft.",
+      );
     }
     return body.record;
   };
