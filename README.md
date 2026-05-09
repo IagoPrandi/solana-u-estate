@@ -1,32 +1,66 @@
 # Usufruct Protocol
 
-Solana migration workspace for the Usufruct Protocol Phase 0 demo.
+A real estate tokenization protocol on Solana that separates property ownership into two independent economic positions:
 
-## What Is Included
+- **Usufruct rights** — the right to use and benefit from the property, held by the original owner
+- **Free value units** — tokens representing the property's economic value, which can be sold to investors independently
 
-- Next.js 16 + TypeScript + Tailwind CSS 4
-- Solana Devnet environment wiring
-- Anchor workspace scaffold at `programs/usufruct_protocol`
-- Server-side `lowdb` persistence in `offchain-db/db.json`
-- Server-side OKX SOL fiat pricing with timeout, cache, and stale fallback
-- Mock document intake with deterministic stable JSON + `keccak256` hashing
-- Legacy Ethereum/Sepolia code archived under `archive/ethereum-sepolia-phase0`
+This allows property owners to unlock liquidity from real estate without giving up occupancy or usage rights, while investors gain fractional exposure to property appreciation.
 
-## Local Run
+## Architecture
+
+### On-Chain Program (`programs/usufruct_protocol`)
+
+The Anchor program manages the full lifecycle of a tokenized property:
+
+| Instruction | Description |
+|---|---|
+| `initialize_protocol` | One-time admin setup |
+| `register_property` | Owner submits property with value, linked-value %, and document hashes |
+| `mock_verify_property` | Verifier approves the property registration |
+| `tokenize_property` | Creates an SPL token mint and mints free value units to the owner |
+| `create_primary_sale_listing` | Owner lists value units for sale; tokens are escrowed on-chain |
+| `buy_primary_sale_listing` | Investor purchases units; SOL sent to seller, tokens sent to buyer |
+| `cancel_primary_sale_listing` | Seller cancels a listing and reclaims escrowed tokens |
+
+**Property status flow:**
+
+```
+PendingMockVerification → MockVerified → Tokenized → ActiveSale ↔ SoldOut
+```
+
+### Off-Chain Layer
+
+- **`offchain-db/db.json`** — lowdb JSON persistence for draft properties and off-chain state
+- **`/api/fiat-rates`** — server-side OKX rate fetching (`SOL-USDC`, `USDC-BRL`) with cache and stale fallback; no private keys
+- **`/api/validator`** — mock verification endpoint
+- **`/api/properties`** — property draft CRUD
+
+### Frontend (`app/`)
+
+Next.js 16 + React 19 + TypeScript + Tailwind CSS 4 + Solana Wallet Adapter.
+
+**Owner flow:** Create property draft → hash documents deterministically (keccak256) → register on-chain → request verification → tokenize → list free value units on the marketplace.
+
+**Investor flow:** Browse marketplace (filter by city, budget) → view listing detail with investment quote → connect wallet → purchase value units → track portfolio.
+
+Other features: multi-language (PT/EN), real-time fiat pricing display, transaction history.
+
+## Local Development
 
 ```bash
 npm run dev
 ```
 
-## Docker Run
+## Docker
 
 ```bash
 docker compose up --build
 ```
 
-App runtime reads `.env.app`. Deploy-only Solana settings stay in `.env.deploy`; keypairs/private keys must not enter the app container.
+App runtime reads `.env.app`. Deploy-only Solana settings go in `.env.deploy`; keypairs and private keys must not enter the app container.
 
-## Solana Setup
+## Solana / Anchor Setup
 
 ```powershell
 npm run solana:preflight
@@ -34,24 +68,11 @@ npm run anchor:build
 npm run solana:deploy:devnet
 ```
 
-Required fixed tooling for milestone S1:
+Required tooling versions:
 
-- Rust `1.91.1`
-- Solana CLI / Agave CLI `3.0.10`
-- Anchor CLI `0.32.1`
-- Node.js `24.10.0` or compatible Node 24 runtime
-
-## Fiat Pricing Route
-
-```text
-GET /api/fiat-rates
-```
-
-The route uses only OKX public endpoints server-side, with no private key. The active base pair is `SOL-USDC`; `USDC-BRL` remains the BRL cross route.
-
-## Required Docs Opened For This Migration Pass
-
-- `PRD_MIGRACAO_SOLANA_INCREMENTADO_V1_5.md`
-- `AGENTS.md`
-- `skills/best-practices/SKILL.md`
-- `skills/best-practices/references/agent-principles.md`
+| Tool | Version |
+|---|---|
+| Rust | `1.91.1` |
+| Solana / Agave CLI | `3.0.10` |
+| Anchor CLI | `0.32.1` |
+| Node.js | `24.10.0` |
