@@ -347,6 +347,7 @@ const exactTranslations: Record<string, string> = {
   "Documentos ficam protegidos fora da blockchain. Apenas": "Documents remain protected off-chain. Only",
   "Nossa equipe está validando os documentos. Costuma levar até": "Our team is validating the documents. It usually takes up to",
   "Você será avisado por aqui assim que terminar.": "You will be notified here as soon as it finishes.",
+  "Pronto para tokenizar": "Ready to tokenize",
   "Seus documentos foram aprovados. Tokenize para gerar o direito de uso e o direito sobre o valor.": "Your documents were approved. Tokenize to generate the use right and value right.",
   "Pronto para captar": "Ready to raise",
   "O imóvel já está tokenizado. Em poucos cliques você publica": "The property is already tokenized. In a few clicks you publish",
