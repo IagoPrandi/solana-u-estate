@@ -46,7 +46,6 @@ function OwnerDashboard({
   ).length;
   const readyToPublish = properties.filter(
     (p) =>
-      p.status === "PendingMockVerification" ||
       p.status === "MockVerified" ||
       p.status === "Tokenized",
   ).length;
@@ -62,7 +61,6 @@ function OwnerDashboard({
   const recommended =
     properties.find(
       (p) =>
-        p.status === "PendingMockVerification" ||
         p.status === "MockVerified" ||
         p.status === "Tokenized",
     ) ??
@@ -71,13 +69,19 @@ function OwnerDashboard({
 
   const recommendedAction = (() => {
     if (!recommended) return null;
-    if (
-      recommended.status === "PendingMockVerification" ||
-      recommended.status === "MockVerified"
-    ) {
+    if (recommended.status === "PendingMockVerification") {
+      return {
+        title: `${recommended.title} está em análise`,
+        body: "Document validation is required before this property can be tokenized.",
+        cta: "Ver detalhes",
+        go: () => navigate("property", { id: recommended.id }),
+        muted: true,
+      };
+    }
+    if (recommended.status === "MockVerified") {
       return {
         title: `Tokenize ${recommended.title}`,
-        body: "Tokenize o imóvel para gerar o direito de uso e o direito sobre o valor. A validação por terceiro é opcional e não bloqueia esta etapa.",
+        body: "Your property registration was validated. Tokenize it to generate the use right and value right.",
         cta: "Tokenizar imóvel",
         go: () => navigate("property", { id: recommended.id }),
         muted: false,

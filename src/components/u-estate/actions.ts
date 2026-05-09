@@ -320,12 +320,9 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     if (!property.owner.equals(owner)) {
       throw new Error("Only the on-chain property owner can tokenize this property.");
     }
-    if (
-      property.status !== "PendingMockVerification" &&
-      property.status !== "MockVerified"
-    ) {
+    if (property.status !== "MockVerified") {
       throw new Error(
-        `Property cannot be tokenized from status ${property.status}. Refresh before trying again.`,
+        "Property registration must be validated before tokenization.",
       );
     }
     if (!property.valueMint.equals(defaultPubkey)) {
@@ -441,18 +438,14 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     tokenize: async (localPropertyId, onchainPropertyId, onStep) => {
       const publicKey = requireWallet();
       const propertyId = BigInt(onchainPropertyId);
-      const property = await assertCanTokenizeProperty(propertyId, publicKey);
+      await assertCanTokenizeProperty(propertyId, publicKey);
       const valueMint = Keypair.generate();
       const { instruction } = tokenizePropertyIx({
         propertyId,
         owner: publicKey,
         valueMint: valueMint.publicKey,
       });
-      const instructions =
-        property.status === "PendingMockVerification"
-          ? [mockVerifyPropertyIx({ propertyId, verifier: publicKey }), instruction]
-          : [instruction];
-      const signature = await sendInstructions(instructions, onStep, [valueMint]);
+      const signature = await sendInstructions([instruction], onStep, [valueMint]);
       const tokenizedProperty = await fetchPropertyAccount(connection, propertyId);
       if (!tokenizedProperty) throw new Error("Property account not found after tokenization.");
       return patchOnchainSync({

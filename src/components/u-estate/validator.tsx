@@ -729,7 +729,7 @@ function ValidatorDashboard({
             Análise de imóveis
           </h1>
           <div className="muted text-sm" style={{ marginTop: 6 }}>
-            Review property documents for operational records. Tokenization does not require third-party approval.
+            Review property documents before owners can tokenize registered properties.
           </div>
         </div>
 

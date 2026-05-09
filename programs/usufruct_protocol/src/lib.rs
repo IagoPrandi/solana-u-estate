@@ -157,8 +157,7 @@ pub mod usufruct_protocol {
 
         let property = &mut ctx.accounts.property;
         require!(
-            property.status == PropertyStatus::PendingMockVerification
-                || property.status == PropertyStatus::MockVerified,
+            property.status == PropertyStatus::MockVerified,
             ErrorCode::PropertyNotMockVerified
         );
         require!(

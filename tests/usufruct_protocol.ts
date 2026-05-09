@@ -682,7 +682,7 @@ describe("usufruct_protocol", () => {
     assert.equal(usufruct.active, true);
   });
 
-  it("tokenizes after registration without third-party verification and rejects duplicate tokenization", async () => {
+  it("rejects tokenization before validation and rejects duplicate tokenization", async () => {
     const state = await accounts.protocolState.fetch(
       derive([Buffer.from("protocol_state")])[0],
     );
@@ -690,7 +690,10 @@ describe("usufruct_protocol", () => {
       BigInt(state.nextPropertyId.toString()),
     );
 
-    await tokenizeProperty(pendingProperty);
+    await expectAnchorError(
+      () => tokenizeProperty(pendingProperty),
+      "PropertyNotMockVerified",
+    );
 
     const { property } = await registerAndMockVerifyNextProperty();
     await tokenizeProperty(property);

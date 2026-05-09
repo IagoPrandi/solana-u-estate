@@ -1,6 +1,98 @@
 {
   "properties": [
     {
+      "localPropertyId": "814cca70-2513-49ba-864f-b5cbb5d398f1",
+      "ownerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+      "marketValueWei": "12000000000",
+      "linkedValueBps": 2000,
+      "address": {
+        "street": "Street",
+        "number": "102",
+        "city": "Oz",
+        "state": "sp",
+        "country": "Brasil",
+        "postalCode": "1232-123"
+      },
+      "location": {
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "mock_laudo_avaliacao_simplificado.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T19:43:02.832Z"
+        },
+        {
+          "type": "mock_owner_id",
+          "filename": "mock_comprovante_localizacao.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T19:43:02.832Z"
+        },
+        {
+          "type": "mock_tax_record",
+          "filename": "mock_matricula_imovel.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T19:43:02.832Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "814cca70-2513-49ba-864f-b5cbb5d398f1",
+        "ownerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+        "marketValueWei": "12000000000",
+        "linkedValueBps": 2000,
+        "address": {
+          "street": "Street",
+          "number": "102",
+          "city": "Oz",
+          "state": "sp",
+          "country": "Brasil",
+          "postalCode": "1232-123"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "814cca70-2513-49ba-864f-b5cbb5d398f1",
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "814cca70-2513-49ba-864f-b5cbb5d398f1",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "mock_laudo_avaliacao_simplificado.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_owner_id",
+            "filename": "mock_comprovante_localizacao.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_tax_record",
+            "filename": "mock_matricula_imovel.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0x46b88bcfa5dd2246b13dcffcc49b7fceb2e3dc0a9ac72aa7cffa553a497d47d8",
+      "locationHash": "0x35d8f3a0dd58341a02540f80d9c419743b04c1d8fd127232c5b523a1c038e51e",
+      "documentsHash": "0x84185eb9b1c89ddc58345d4d8119b1cbb247a54e8c7059ff35830f0f980aec92",
+      "createdAt": "2026-05-09T19:43:02.832Z",
+      "onchainRegistration": {
+        "propertyId": "12",
+        "txHash": "2gvfSD8AdbwvbzUzhdaGXdmmGvz9gBwp4SNRBkm9m4Bb2gspf4EKR6r5wuRx1w4FjQzvUQgFDaQiL96EAsU9Qs9v",
+        "status": "MockVerified",
+        "registeredAt": "2026-05-09T19:43:26.566Z",
+        "verificationTxHash": "1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-09T19:46:03.858Z"
+      }
+    },
+    {
       "localPropertyId": "313d5783-5640-4943-94f6-0a1d64575fba",
       "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
       "marketValueWei": "12000000000",
@@ -634,21 +726,29 @@
     "provider": "okx",
     "base": "SOL",
     "routes": {
-      "usd": "SOL-USDC",
-      "brl": "SOL-USDC * USDC-BRL"
+      "usd": "SOL-USDC"
     },
     "rates": {
-      "usd": "92.94",
-      "brl": "456.3354"
+      "usd": "93.39"
     },
-    "unavailable": [],
+    "unavailable": [
+      "brl"
+    ],
     "optionalRates": {
       "eur": null,
       "jpy": null
     },
-    "updatedAt": "2026-05-09T17:04:36.235Z"
+    "updatedAt": "2026-05-09T20:07:55.138Z"
   },
   "solanaTransactions": [
+    {
+      "signature": "2gvfSD8AdbwvbzUzhdaGXdmmGvz9gBwp4SNRBkm9m4Bb2gspf4EKR6r5wuRx1w4FjQzvUQgFDaQiL96EAsU9Qs9v",
+      "kind": "registration",
+      "localPropertyId": "814cca70-2513-49ba-864f-b5cbb5d398f1",
+      "propertyId": "12",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T19:43:26.566Z"
+    },
     {
       "signature": "28XS28niUbvCSCB3j6TvAs1NmPFGcAuzEaBaEowxYxPVubDuY6NNTFUnX8H3W7RCJFyE1GsXFSpDUEhXubpFMaxG",
       "kind": "primarySalePurchase",

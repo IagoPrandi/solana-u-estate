@@ -44,19 +44,19 @@ function ownerJourney(p: Property) {
   return [
     {
       key: "register",
-      label: "Imóvel cadastrado",
+      label: "Property registered",
       sub: "Documentos enviados.",
       done: true,
       active: false,
     },
     {
       key: "review",
-      label: p.status === "Rejected" ? "Análise reprovada" : "Análise",
+      label: p.status === "Rejected" ? "Review rejected" : "Review",
       sub:
         p.status === "Rejected"
           ? p.rejection?.reason ?? "Documentação rejeitada pelo validador."
           : p.status === "PendingMockVerification"
-            ? "Validação documental opcional. A tokenização já está disponível."
+            ? "Document validation is required before tokenization."
             : "Documentos validados.",
       done: (
         ["MockVerified", "Tokenized", "ActiveSale", "SoldOut"] as PropertyStatus[]
@@ -75,7 +75,7 @@ function ownerJourney(p: Property) {
             : "Defina quanto quer captar.",
       done: (["ActiveSale", "SoldOut"] as PropertyStatus[]).includes(p.status),
       active: (
-        ["PendingMockVerification", "MockVerified", "Tokenized"] as PropertyStatus[]
+        ["MockVerified", "Tokenized"] as PropertyStatus[]
       ).includes(p.status),
     },
     {
@@ -148,10 +148,14 @@ export function PropertyDetailPage({
   const capturedSOL =
     Number(p.marketValueEth) * (p.soldFreeValueUnits / p.totalValueUnits);
   const primary = (() => {
-    if (
-      p.status === "PendingMockVerification" ||
-      p.status === "MockVerified"
-    )
+    if (p.status === "PendingMockVerification")
+      return {
+        label: "Tokenizar imóvel",
+        go: undefined,
+        disabled: true,
+        primary: true,
+      };
+    if (p.status === "MockVerified")
       return {
         label: "Tokenizar imóvel",
         go: () =>
@@ -688,7 +692,7 @@ export function PropertyDetailPage({
                 style={{ color: "#fff" }}
               >
                 <IconShield size={18} style={{ color: "var(--color-orange)" }} />
-                <div className="text-sm fw-700">Pronto para tokenizar</div>
+                <div className="text-sm fw-700">Waiting for validation</div>
               </div>
               <div
                 className="text-sm mt-12"
@@ -697,17 +701,11 @@ export function PropertyDetailPage({
                   lineHeight: 1.55,
                 }}
               >
-                A validação de documentos por terceiro é opcional e não bloqueia
-                a geração dos tokens do imóvel.
+                Document validation is required before this property can be tokenized.
               </div>
               <button
-                className="btn btn-primary w-100 mt-16"
-                disabled={txPending}
-                onClick={() =>
-                  void runChainAction("Tokenizando imóvel", (onStep) =>
-                    actions.tokenizeProperty(p.id, p.propertyId, onStep),
-                  )
-                }
+                className="btn btn-neutral w-100 mt-16"
+                disabled
               >
                 Tokenizar imóvel <IconArrowRight size={14} />
               </button>

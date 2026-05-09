@@ -691,7 +691,7 @@ export function PropertyNewPage({
                 </h3>
                 <div className="muted text-sm mt-12">
                   Anexe os documentos do imóvel para o registro off-chain.
-                  Document review is optional and does not block tokenization.
+                  Document validation is required before tokenization.
                 </div>
               </div>
               <div className="col col-gap">
@@ -898,8 +898,8 @@ export function PropertyNewPage({
                     lineHeight: 1.55,
                   }}
                 >
-                  Document review is optional and non-blocking. After registration,
-                  you can tokenize the property without third-party approval.
+                  After registration, the property must be validated before
+                  tokenization is available.
                 </div>
               </div>
             </div>
