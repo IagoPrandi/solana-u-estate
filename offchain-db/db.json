@@ -96,20 +96,23 @@
         "usufructTokenId": "11",
         "linkedValueUnits": "150000",
         "freeValueUnits": "850000",
-        "activeEscrowedAmount": "590000",
+        "activeEscrowedAmount": "589000",
         "activeListingsCount": "2",
-        "totalFreeValueSold": "0",
+        "totalFreeValueSold": "1000",
         "primarySaleListings": [
           {
             "listingId": "6",
-            "amount": "190000",
-            "priceWei": "2280000000",
+            "amount": "189000",
+            "priceWei": "2268000000",
             "priceLamports": "2280000000",
             "txHash": "2h6m4iavStEYT8HMiwNLZdnq22egMjhyhYHkj3bxA2wkz1vueuj3vnPJ6BeHF5bnDns1qNYMu3GvxV1hfLrPGQS5",
             "createdSignature": "2h6m4iavStEYT8HMiwNLZdnq22egMjhyhYHkj3bxA2wkz1vueuj3vnPJ6BeHF5bnDns1qNYMu3GvxV1hfLrPGQS5",
             "syncStatus": "confirmed",
             "status": "Active",
-            "listedAt": "2026-05-09T16:04:03.897Z"
+            "listedAt": "2026-05-09T16:04:03.897Z",
+            "buyerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+            "purchaseTxHash": "28XS28niUbvCSCB3j6TvAs1NmPFGcAuzEaBaEowxYxPVubDuY6NNTFUnX8H3W7RCJFyE1GsXFSpDUEhXubpFMaxG",
+            "purchasedAt": "2026-05-09T17:05:10.818Z"
           },
           {
             "listingId": "5",
@@ -121,6 +124,16 @@
             "syncStatus": "confirmed",
             "status": "Active",
             "listedAt": "2026-05-09T16:02:14.953Z"
+          }
+        ],
+        "sellerReceivedWei": "12000000",
+        "buyerBalances": [
+          {
+            "buyerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+            "freeValueUnits": "1000",
+            "totalPaidWei": "12000000",
+            "lastPurchaseTxHash": "28XS28niUbvCSCB3j6TvAs1NmPFGcAuzEaBaEowxYxPVubDuY6NNTFUnX8H3W7RCJFyE1GsXFSpDUEhXubpFMaxG",
+            "acquiredAt": "2026-05-09T17:05:10.818Z"
           }
         ]
       }
@@ -625,17 +638,26 @@
       "brl": "SOL-USDC * USDC-BRL"
     },
     "rates": {
-      "usd": "93.02",
-      "brl": "456.82122"
+      "usd": "92.94",
+      "brl": "456.3354"
     },
     "unavailable": [],
     "optionalRates": {
       "eur": null,
       "jpy": null
     },
-    "updatedAt": "2026-05-09T16:10:31.374Z"
+    "updatedAt": "2026-05-09T17:04:36.235Z"
   },
   "solanaTransactions": [
+    {
+      "signature": "28XS28niUbvCSCB3j6TvAs1NmPFGcAuzEaBaEowxYxPVubDuY6NNTFUnX8H3W7RCJFyE1GsXFSpDUEhXubpFMaxG",
+      "kind": "primarySalePurchase",
+      "localPropertyId": "313d5783-5640-4943-94f6-0a1d64575fba",
+      "propertyId": "11",
+      "listingId": "6",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T17:05:10.818Z"
+    },
     {
       "signature": "2fuXDkBMqdHnPdXawBSdCAcf64mAKYRA4CAYKmS7maXGnZR7YSB2Kwh8SnFw9J9U5Rvcw14vAxvtara5qaWLvPr",
       "kind": "tokenization",

@@ -958,13 +958,17 @@ export function ValidatorApp() {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return;
-    try {
-      setSession(JSON.parse(stored) as Session);
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
+    const timeout = window.setTimeout(() => {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (!stored) return;
+      try {
+        setSession(JSON.parse(stored) as Session);
+      } catch {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, []);
 
   const handleLogout = () => {

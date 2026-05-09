@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SavedPropertyRecord } from "@/offchain/schemas";
-import { lamportsToSolDecimal } from "@/lib/solana/instructions";
 import { useUEstateActions, type NewPropertyForm } from "./actions";
 import { DashboardPage } from "./dashboard";
 import { initialUser } from "./data";
@@ -78,8 +77,6 @@ export type AppActions = {
   ) => Promise<void>;
 };
 
-const TOTAL_VALUE_UNITS = 1_000_000;
-
 export function UEstateApp() {
   const wallet = useWallet();
   const actions = useUEstateActions(wallet);
@@ -129,16 +126,20 @@ export function UEstateApp() {
   }, []);
 
   useEffect(() => {
-    void refreshFromApi();
-    // Whenever the wallet identity changes, drop any in-progress per-property
-    // route so the user does not stay on a foreign wallet's detail/publish page.
-    setRoute((prev) =>
-      prev.name === "property" ||
-      prev.name === "property-publish" ||
-      prev.name === "investment"
-        ? { name: "dashboard", params: {} }
-        : prev,
-    );
+    const timeout = window.setTimeout(() => {
+      void refreshFromApi();
+      // Whenever the wallet identity changes, drop any in-progress per-property
+      // route so the user does not stay on a foreign wallet's detail/publish page.
+      setRoute((prev) =>
+        prev.name === "property" ||
+        prev.name === "property-publish" ||
+        prev.name === "investment"
+          ? { name: "dashboard", params: {} }
+          : prev,
+      );
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [wallet.address, refreshFromApi]);
 
   // Poll the off-chain DB while a wallet is connected so that validator
