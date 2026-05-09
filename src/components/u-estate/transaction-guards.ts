@@ -38,16 +38,27 @@ export function assertFreshPrimarySalePurchase(input: {
   sellerWallet: PublicKey | string;
   expectedValueMint: PublicKey | string;
 }) {
+  const localAmount = BigInt(input.localListing.amount);
+  const localPriceLamports = BigInt(input.localListing.priceWei);
+
   if (input.localListing.syncStatus === "stale") {
     throw new Error("Listing is stale. Refresh before buying.");
   }
   if (input.localListing.status && input.localListing.status !== "Active") {
     throw new Error("Listing is not active locally.");
   }
-  if (input.requestedAmount !== BigInt(input.localListing.amount)) {
-    throw new Error("On-chain primary sale requires buying the full listing amount.");
+  if (input.requestedAmount <= 0n) {
+    throw new Error("Purchase amount must be greater than zero.");
   }
-  if (input.requestedPriceLamports !== BigInt(input.localListing.priceWei)) {
+  if (input.requestedAmount > localAmount) {
+    throw new Error("Purchase amount exceeds the available listing amount.");
+  }
+  const localExpectedPrice =
+    localAmount > 0n ? (localPriceLamports * input.requestedAmount) / localAmount : 0n;
+  if (localExpectedPrice <= 0n) {
+    throw new Error("Purchase price is too small for on-chain settlement.");
+  }
+  if (input.requestedPriceLamports !== localExpectedPrice) {
     throw new Error("Stale listing price. Refresh before buying.");
   }
   if (samePubkey(input.buyerWallet, input.sellerWallet)) {
@@ -59,10 +70,10 @@ export function assertFreshPrimarySalePurchase(input: {
   if (!input.chainListing || input.chainListing.status !== "Active") {
     throw new Error("Listing is not active on-chain.");
   }
-  if (input.chainListing.amount !== input.requestedAmount) {
+  if (input.chainListing.amount !== localAmount) {
     throw new Error("Listing amount changed on-chain. Refresh before buying.");
   }
-  if (input.chainListing.priceLamports !== input.requestedPriceLamports) {
+  if (input.chainListing.priceLamports !== localPriceLamports) {
     throw new Error("Listing price changed on-chain. Refresh before buying.");
   }
   if (!samePubkey(input.chainListing.seller, input.sellerWallet)) {

@@ -661,7 +661,7 @@ Nenhuma instrução da Fase 0 pode mintar tokens adicionais depois da tokenizaç
 
 Validações obrigatórias:
 
-- `property.status == MockVerified` antes da tokenização.
+- `property.status == PendingMockVerification || property.status == MockVerified` antes da tokenização.
 - `property.value_mint == Pubkey::default()` antes de criar mint.
 - `amount_minted == free_value_units`.
 - `mint.decimals == 0`.
@@ -1080,7 +1080,7 @@ Ordem obrigatória em `tokenize_property`:
 
 1. Validar `owner` como signer.
 2. Validar `PropertyAccount` por seeds/bump e `has_one = owner`.
-3. Validar `property.status == MockVerified`.
+3. Validar `property.status == PendingMockVerification || property.status == MockVerified`.
 4. Validar que `property.value_mint == Pubkey::default()`.
 5. Validar `token_program.key() == spl_token::ID`.
 6. Validar `associated_token_program.key() == associated_token::ID`.
@@ -1263,7 +1263,7 @@ pub enum ErrorCode {
     #[msg("Property is not pending mock verification")]
     PropertyNotPendingMockVerification,
 
-    #[msg("Property is not mock verified")]
+    #[msg("Property is not ready for tokenization")]
     PropertyNotMockVerified,
 
     #[msg("Property already tokenized")]
@@ -2927,7 +2927,7 @@ Roadmap mínimo:
 
 ### Critérios de aprovação
 
-- [x] Pessoa A tokeniza imóvel mock verified.
+- [x] Pessoa A tokeniza imóvel registrado; validação por terceiro é opcional e não bloqueia tokenização.
 - [x] Owner recebe `free_value_units`.
 - [x] UsufructPosition mostra `linked_value_units`.
 - [x] Mint usa `decimals = 0`.
@@ -2936,7 +2936,7 @@ Roadmap mínimo:
 ### Testes
 
 - [x] Tokenização válida.
-- [x] Tokenização antes da mock verification reverte.
+- [x] Tokenização após registro sem mock verification é permitida.
 - [x] Tokenização duplicada reverte.
 - [x] Mint falso reverte.
 - [x] ATA falsa do owner reverte.

@@ -1,6 +1,7 @@
 type ErrorLike = {
   message?: unknown;
   error?: unknown;
+  cause?: unknown;
 };
 
 function readText(value: unknown) {
@@ -9,7 +10,11 @@ function readText(value: unknown) {
 
 export function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message.trim().length > 0) {
-    return error.message;
+    const errorLike = error as ErrorLike;
+    const nested =
+      getNestedErrorMessage(errorLike.error, error.message) ??
+      getNestedErrorMessage(errorLike.cause, error.message);
+    return nested ?? error.message;
   }
 
   if (typeof error === "string" && error.trim().length > 0) {
@@ -17,8 +22,11 @@ export function getErrorMessage(error: unknown, fallback: string) {
   }
 
   if (error && typeof error === "object") {
-    const { message, error: nestedError } = error as ErrorLike;
-    const text = readText(message) ?? readText(nestedError);
+    const { message, error: nestedError, cause } = error as ErrorLike;
+    const text =
+      readText(message) ??
+      getNestedErrorMessage(nestedError, fallback) ??
+      getNestedErrorMessage(cause, fallback);
     if (text) return text;
 
     const rendered = String(error);
@@ -28,6 +36,21 @@ export function getErrorMessage(error: unknown, fallback: string) {
   }
 
   return fallback;
+}
+
+function getNestedErrorMessage(error: unknown, parentMessage: string) {
+  if (!error) return null;
+
+  const nested =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object"
+        ? readText((error as ErrorLike).message)
+        : readText(error);
+
+  if (!nested || nested === parentMessage) return null;
+
+  return nested;
 }
 
 export function summarizeProgramLogs(logs: string[]) {

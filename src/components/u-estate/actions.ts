@@ -5,6 +5,8 @@ import {
   Keypair,
   PublicKey,
   Transaction,
+  TransactionMessage,
+  VersionedTransaction,
   type Signer,
   type TransactionInstruction,
 } from "@solana/web3.js";
@@ -142,7 +144,7 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     const latestBlockhash = await connection.getLatestBlockhash("confirmed");
     tx.recentBlockhash = latestBlockhash.blockhash;
 
-    const readErrorLogs = async (error: unknown) => {
+    const readErrorLogs = async (error: unknown): Promise<string[] | null> => {
       if (!error || typeof error !== "object") return null;
 
       if ("getLogs" in error && typeof error.getLogs === "function") {
@@ -160,7 +162,45 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
         return error.logs.filter((line): line is string => typeof line === "string");
       }
 
+      if ("error" in error) {
+        const nestedLogs = await readErrorLogs(error.error);
+        if (nestedLogs) return nestedLogs;
+      }
+
+      if ("cause" in error) {
+        const nestedLogs = await readErrorLogs(error.cause);
+        if (nestedLogs) return nestedLogs;
+      }
+
       return null;
+    };
+
+    const simulateBeforeWalletPrompt = async () => {
+      const message = new TransactionMessage({
+        payerKey: publicKey,
+        recentBlockhash: latestBlockhash.blockhash,
+        instructions,
+      }).compileToV0Message();
+      const simulationTx = new VersionedTransaction(message);
+      if (signers.length > 0) {
+        simulationTx.sign(signers);
+      }
+
+      const simulation = await connection.simulateTransaction(simulationTx, {
+        commitment: "confirmed",
+        sigVerify: false,
+      });
+
+      if (simulation.value.err) {
+        const logSummary = simulation.value.logs
+          ? summarizeProgramLogs(simulation.value.logs)
+          : null;
+        throw new Error(
+          `Transaction preflight failed. ${
+            logSummary ?? JSON.stringify(simulation.value.err)
+          }`,
+        );
+      }
     };
 
     const describeTransactionError = async (error: unknown) => {
@@ -196,10 +236,24 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     };
 
     try {
-      const signature = await solanaWallet.sendTransaction(tx, connection, {
-        signers,
-        preflightCommitment: "confirmed",
-      });
+      await simulateBeforeWalletPrompt();
+      let signature: string;
+      if (signers.length > 0) {
+        if (!solanaWallet.signTransaction) {
+          throw new Error(
+            "Connected wallet cannot sign transactions with generated mint accounts.",
+          );
+        }
+        tx.partialSign(...signers);
+        const signedTx = await solanaWallet.signTransaction(tx);
+        signature = await connection.sendRawTransaction(signedTx.serialize(), {
+          preflightCommitment: "confirmed",
+        });
+      } else {
+        signature = await solanaWallet.sendTransaction(tx, connection, {
+          preflightCommitment: "confirmed",
+        });
+      }
       onStep("sent");
       onStep("confirming");
 
@@ -266,11 +320,12 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     if (!property.owner.equals(owner)) {
       throw new Error("Only the on-chain property owner can tokenize this property.");
     }
-    if (property.status !== "MockVerified") {
+    if (
+      property.status !== "PendingMockVerification" &&
+      property.status !== "MockVerified"
+    ) {
       throw new Error(
-        property.status === "PendingMockVerification"
-          ? "Approve mock verification before tokenization."
-          : `Property cannot be tokenized from status ${property.status}. Refresh before trying again.`,
+        `Property cannot be tokenized from status ${property.status}. Refresh before trying again.`,
       );
     }
     if (!property.valueMint.equals(defaultPubkey)) {
@@ -278,6 +333,7 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     }
 
     await ensureSolBalance(await getTokenizationMinimumLamports());
+    return property;
   };
 
   const createDraft = async (form: NewPropertyForm) => {
@@ -385,25 +441,29 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     tokenize: async (localPropertyId, onchainPropertyId, onStep) => {
       const publicKey = requireWallet();
       const propertyId = BigInt(onchainPropertyId);
-      await assertCanTokenizeProperty(propertyId, publicKey);
+      const property = await assertCanTokenizeProperty(propertyId, publicKey);
       const valueMint = Keypair.generate();
       const { instruction } = tokenizePropertyIx({
         propertyId,
         owner: publicKey,
         valueMint: valueMint.publicKey,
       });
-      const signature = await sendInstructions([instruction], onStep, [valueMint]);
-      const property = await fetchPropertyAccount(connection, propertyId);
-      if (!property) throw new Error("Property account not found after tokenization.");
+      const instructions =
+        property.status === "PendingMockVerification"
+          ? [mockVerifyPropertyIx({ propertyId, verifier: publicKey }), instruction]
+          : [instruction];
+      const signature = await sendInstructions(instructions, onStep, [valueMint]);
+      const tokenizedProperty = await fetchPropertyAccount(connection, propertyId);
+      if (!tokenizedProperty) throw new Error("Property account not found after tokenization.");
       return patchOnchainSync({
         kind: "tokenization",
         localPropertyId,
         propertyId: onchainPropertyId,
         txHash: signature,
-        valueTokenAddress: property.valueMint.toBase58(),
-        usufructTokenId: property.propertyId.toString(),
-        linkedValueUnits: property.linkedValueUnits.toString(),
-        freeValueUnits: property.freeValueUnits.toString(),
+        valueTokenAddress: tokenizedProperty.valueMint.toBase58(),
+        usufructTokenId: tokenizedProperty.propertyId.toString(),
+        linkedValueUnits: tokenizedProperty.linkedValueUnits.toString(),
+        freeValueUnits: tokenizedProperty.freeValueUnits.toString(),
       });
     },
     publishListing: async (localPropertyId, onchainPropertyId, units, onStep) => {
@@ -467,7 +527,7 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
       const buyerAtaExists = Boolean(
         await connection.getAccountInfo(buyerTokenAccount, "confirmed"),
       );
-      await ensureSolBalance(BigInt(listing.priceWei) + 20_000_000n);
+      await ensureSolBalance(priceWei + 20_000_000n);
       const propertyId = BigInt(onchain.propertyId);
       const property = await fetchPropertyAccount(connection, propertyId);
       const listingAccount = property
@@ -493,8 +553,8 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
         seller: new PublicKey(record.ownerWallet),
         valueMint,
         escrowTokenAccount: listingAccount.escrowTokenAccount,
-        amount: BigInt(listing.amount),
-        priceLamports: BigInt(listing.priceWei),
+        amount: BigInt(amount),
+        priceLamports: priceWei,
         buyerTokenAccountExists: buyerAtaExists,
       });
       const signature = await sendInstructions(instructions, onStep);
@@ -505,8 +565,8 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
         listingId,
         txHash: signature,
         buyerWallet: publicKey.toBase58(),
-        amount: listing.amount,
-        priceWei: listing.priceWei,
+        amount: amount.toString(),
+        priceWei: priceWei.toString(),
       });
     },
     cancelListing: async (localPropertyId, listingId, onStep) => {

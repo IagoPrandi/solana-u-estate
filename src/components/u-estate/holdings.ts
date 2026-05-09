@@ -1,4 +1,4 @@
-import { lamportsToSolDecimal } from "@/lib/solana/instructions";
+import { storedSolAmountToNumber } from "./amounts";
 import type { Property } from "./types";
 
 export type WalletHolding = {
@@ -37,7 +37,7 @@ export function getWalletHoldings(
         property,
         buyerWallet: balance.buyerWallet,
         units: Number(balance.freeValueUnits),
-        costEth: Number(lamportsToSolDecimal(BigInt(balance.totalPaidWei), 8)),
+        costEth: storedSolAmountToNumber(balance.totalPaidWei),
         acquiredAt: balance.acquiredAt,
         lastPurchaseTxHash: balance.lastPurchaseTxHash,
       })),
@@ -59,7 +59,7 @@ export function getWalletHoldingForProperty(
     property,
     buyerWallet: balance.buyerWallet,
     units: Number(balance.freeValueUnits),
-    costEth: Number(lamportsToSolDecimal(BigInt(balance.totalPaidWei), 8)),
+    costEth: storedSolAmountToNumber(balance.totalPaidWei),
     acquiredAt: balance.acquiredAt,
     lastPurchaseTxHash: balance.lastPurchaseTxHash,
   };

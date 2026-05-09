@@ -3,6 +3,11 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import type { SavedPropertyRecord } from "@/offchain/schemas";
+import { storedSolAmountToNumber } from "./amounts";
+import {
+  formatUsdFromFiatRates,
+  type FiatRatesState,
+} from "./fiat-rates";
 import {
   IconAlert,
   IconArrowRight,
@@ -14,6 +19,7 @@ import {
   IconX,
 } from "./icons";
 import { LanguageToggle } from "./i18n";
+import { useFiatRates } from "./use-fiat-rates";
 
 const ACCESS_CODE = "u-estate-ops";
 const STORAGE_KEY = "validator_session";
@@ -28,18 +34,13 @@ function titleFromRecord(r: SavedPropertyRecord) {
 }
 
 function weiToSOLApprox(wei: string) {
-  const n = Number(BigInt(wei)) / 1e9;
+  const n = storedSolAmountToNumber(wei);
   return n < 1 ? n.toFixed(4) : n.toFixed(2);
 }
 
-function usdApprox(wei: string) {
-  const SOL = Number(BigInt(wei)) / 1e9;
-  const usd = SOL * 150;
-  return usd.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
+function usdApprox(wei: string, fiatRates: FiatRatesState) {
+  const SOL = storedSolAmountToNumber(wei);
+  return formatUsdFromFiatRates(SOL, fiatRates);
 }
 
 function docLabel(type: string) {
@@ -255,6 +256,7 @@ function PropertyPanel({
   onReject: (id: string, reason: string) => Promise<void>;
   onClose: () => void;
 }) {
+  const fiatRates = useFiatRates();
   const [busy, setBusy] = useState<"approve" | "reject" | null>(null);
   const [done, setDone] = useState<"approved" | "rejected" | null>(null);
   const [error, setError] = useState("");
@@ -338,7 +340,9 @@ function PropertyPanel({
               <div className="fw-800 text-xl mono mt-12">
                 {weiToSOLApprox(record.marketValueWei)} SOL
               </div>
-              <div className="muted text-sm">{usdApprox(record.marketValueWei)}</div>
+              <div className="muted text-sm">
+                {usdApprox(record.marketValueWei, fiatRates)}
+              </div>
             </div>
             <div style={{ flex: 1 }}>
               <div className="muted text-xs" style={{ textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>
@@ -587,6 +591,7 @@ function ValidatorDashboard({
   session: Session;
   onLogout: () => void;
 }) {
+  const fiatRates = useFiatRates();
   const [properties, setProperties] = useState<SavedPropertyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<SavedPropertyRecord | null>(null);
@@ -724,7 +729,7 @@ function ValidatorDashboard({
             Análise de imóveis
           </h1>
           <div className="muted text-sm" style={{ marginTop: 6 }}>
-            Revise a documentação de cada imóvel e aprove a análise para liberar a tokenização.
+            Review property documents for operational records. Tokenization does not require third-party approval.
           </div>
         </div>
 
@@ -814,6 +819,7 @@ function ValidatorDashboard({
                 <PropertyRow
                   key={p.localPropertyId}
                   record={p}
+                  fiatRates={fiatRates}
                   onClick={() => setSelected(p)}
                   reviewed={false}
                 />
@@ -844,6 +850,7 @@ function ValidatorDashboard({
               <PropertyRow
                 key={p.localPropertyId}
                 record={p}
+                fiatRates={fiatRates}
                 onClick={() => setSelected(p)}
                 reviewed
               />
@@ -866,10 +873,12 @@ function ValidatorDashboard({
 
 function PropertyRow({
   record,
+  fiatRates,
   onClick,
   reviewed,
 }: {
   record: SavedPropertyRecord;
+  fiatRates: FiatRatesState;
   onClick: () => void;
   reviewed: boolean;
 }) {
@@ -931,7 +940,9 @@ function PropertyRow({
         <div className="mono fw-700 text-sm">
           {weiToSOLApprox(record.marketValueWei)} SOL
         </div>
-        <div className="muted text-xs">{usdApprox(record.marketValueWei)}</div>
+        <div className="muted text-xs">
+          {usdApprox(record.marketValueWei, fiatRates)}
+        </div>
       </div>
       <span className={`badge badge-sm ${statusCls}`}>
         {statusLabel}
@@ -944,21 +955,20 @@ function PropertyRow({
 // ===== APP ENTRY =====
 
 export function ValidatorApp() {
-  const [session, setSession] = useState<Session | null>(() => {
-    if (typeof window === "undefined") return null;
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored) as Session;
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
+    if (!stored) return;
+    try {
+      setSession(JSON.parse(stored) as Session);
+    } catch {
+      window.localStorage.removeItem(STORAGE_KEY);
     }
-    return null;
-  });
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(STORAGE_KEY);
     setSession(null);
   };
 

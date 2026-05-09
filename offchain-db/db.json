@@ -1,6 +1,229 @@
 {
   "properties": [
     {
+      "localPropertyId": "313d5783-5640-4943-94f6-0a1d64575fba",
+      "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
+      "marketValueWei": "12000000000",
+      "linkedValueBps": 1500,
+      "address": {
+        "street": "ads",
+        "number": "asfd",
+        "city": "asd",
+        "state": "asdf",
+        "country": "Brasila",
+        "postalCode": "124"
+      },
+      "location": {
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "mock_comprovante_localizacao.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T15:12:48.341Z"
+        },
+        {
+          "type": "mock_owner_id",
+          "filename": "mock_iptu_cadastro_municipal.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T15:12:48.341Z"
+        },
+        {
+          "type": "mock_tax_record",
+          "filename": "mock_laudo_avaliacao_simplificado.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T15:12:48.341Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "313d5783-5640-4943-94f6-0a1d64575fba",
+        "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
+        "marketValueWei": "12000000000",
+        "linkedValueBps": 1500,
+        "address": {
+          "street": "ads",
+          "number": "asfd",
+          "city": "asd",
+          "state": "asdf",
+          "country": "Brasila",
+          "postalCode": "124"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "313d5783-5640-4943-94f6-0a1d64575fba",
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "313d5783-5640-4943-94f6-0a1d64575fba",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "mock_comprovante_localizacao.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_owner_id",
+            "filename": "mock_iptu_cadastro_municipal.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_tax_record",
+            "filename": "mock_laudo_avaliacao_simplificado.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0xaff838dfe8febdff33af39f7a88e7ff9dac8e0c27d810294298c6a40c71a573a",
+      "locationHash": "0x072017086a956844e2b3956753e9217b3ba8d08ea80a295bf784a036b63ad630",
+      "documentsHash": "0xd23940466afac6c8e12103c59c5e1baa3eb48de5b1499aa5ea1c81c33df9c9b3",
+      "createdAt": "2026-05-09T15:12:48.341Z",
+      "onchainRegistration": {
+        "propertyId": "11",
+        "txHash": "3BDCCekjohEQhRHZXq1E9meZkWSExxxkQHuVapoyWeJ3ri3uYgAUrrTuaeL9ge2ZvqjjRb9Vykpo4gp4FYbfEAFo",
+        "status": "ActiveSale",
+        "registeredAt": "2026-05-09T15:13:01.993Z",
+        "verificationTxHash": "1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-09T15:13:26.396Z",
+        "tokenizationTxHash": "5LbrcMDXHu7eLckpBoTSTrjhTTHros5MjTSCj5tsVKigeoZoCwZctZ6gks1yVvAFLZq87qj72JVzYxZReQbw9GDP",
+        "tokenizedAt": "2026-05-09T16:00:59.755Z",
+        "valueTokenAddress": "CMxMmMBErA3JWbL7PfRCGEgt5wS4ctgGW417umRj4GkM",
+        "usufructTokenId": "11",
+        "linkedValueUnits": "150000",
+        "freeValueUnits": "850000",
+        "activeEscrowedAmount": "590000",
+        "activeListingsCount": "2",
+        "totalFreeValueSold": "0",
+        "primarySaleListings": [
+          {
+            "listingId": "6",
+            "amount": "190000",
+            "priceWei": "2280000000",
+            "priceLamports": "2280000000",
+            "txHash": "2h6m4iavStEYT8HMiwNLZdnq22egMjhyhYHkj3bxA2wkz1vueuj3vnPJ6BeHF5bnDns1qNYMu3GvxV1hfLrPGQS5",
+            "createdSignature": "2h6m4iavStEYT8HMiwNLZdnq22egMjhyhYHkj3bxA2wkz1vueuj3vnPJ6BeHF5bnDns1qNYMu3GvxV1hfLrPGQS5",
+            "syncStatus": "confirmed",
+            "status": "Active",
+            "listedAt": "2026-05-09T16:04:03.897Z"
+          },
+          {
+            "listingId": "5",
+            "amount": "400000",
+            "priceWei": "4800000000",
+            "priceLamports": "4800000000",
+            "txHash": "4GC6R6cEkexHGLYAjHPYeYGNVqzxHQq2RWQtJpecPwoXjeVEADYedGFDyrFduLQFKyk2vSg4jkVw1p74pusdXHvU",
+            "createdSignature": "4GC6R6cEkexHGLYAjHPYeYGNVqzxHQq2RWQtJpecPwoXjeVEADYedGFDyrFduLQFKyk2vSg4jkVw1p74pusdXHvU",
+            "syncStatus": "confirmed",
+            "status": "Active",
+            "listedAt": "2026-05-09T16:02:14.953Z"
+          }
+        ]
+      }
+    },
+    {
+      "localPropertyId": "d36a95a6-afcf-4330-af35-6b45dc64bfab",
+      "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
+      "marketValueWei": "426000",
+      "linkedValueBps": 1500,
+      "address": {
+        "street": "dfa",
+        "number": "dsf",
+        "city": "asdf",
+        "state": "asdf",
+        "country": "Brasil",
+        "postalCode": "ds"
+      },
+      "location": {
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "mock_comprovante_localizacao.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T03:46:09.644Z"
+        },
+        {
+          "type": "mock_owner_id",
+          "filename": "mock_iptu_cadastro_municipal.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T03:46:09.644Z"
+        },
+        {
+          "type": "mock_tax_record",
+          "filename": "mock_matricula_imovel.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-09T03:46:09.644Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "d36a95a6-afcf-4330-af35-6b45dc64bfab",
+        "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
+        "marketValueWei": "426000",
+        "linkedValueBps": 1500,
+        "address": {
+          "street": "dfa",
+          "number": "dsf",
+          "city": "asdf",
+          "state": "asdf",
+          "country": "Brasil",
+          "postalCode": "ds"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "d36a95a6-afcf-4330-af35-6b45dc64bfab",
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "d36a95a6-afcf-4330-af35-6b45dc64bfab",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "mock_comprovante_localizacao.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_owner_id",
+            "filename": "mock_iptu_cadastro_municipal.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_tax_record",
+            "filename": "mock_matricula_imovel.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0x8f3be35e5a094fe9466d90675aef97b3e44d95aca2e82a0918ff7db5f629e382",
+      "locationHash": "0xfd94d34ba921219db696bec4e971dcafc4cb6c62dc4ea0e88d6db7726796461f",
+      "documentsHash": "0x59f3156f19c4b67081ad293e24a2671a0de769c6ee539edbfd66c35bb7fc80ad",
+      "createdAt": "2026-05-09T03:46:09.644Z",
+      "onchainRegistration": {
+        "propertyId": "10",
+        "txHash": "2nkMrZaFzyiyXq6AVpApg972ghnedjoV2oLwh4FiNZLa17eCUCHh1PDxSJ1omSTB45yy7JtrqbtJiqoPRWaZG37m",
+        "status": "Tokenized",
+        "registeredAt": "2026-05-09T03:46:16.064Z",
+        "verificationTxHash": "1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-09T03:47:07.689Z",
+        "tokenizationTxHash": "2fuXDkBMqdHnPdXawBSdCAcf64mAKYRA4CAYKmS7maXGnZR7YSB2Kwh8SnFw9J9U5Rvcw14vAxvtara5qaWLvPr",
+        "tokenizedAt": "2026-05-09T16:05:30.685Z",
+        "valueTokenAddress": "9NEoHo7ucknyMT7evx6jqSXUjAxMYLWSLyJzDEkCyDG",
+        "usufructTokenId": "10",
+        "linkedValueUnits": "150000",
+        "freeValueUnits": "850000"
+      }
+    },
+    {
       "localPropertyId": "c44fde7b-da1a-495e-ba97-b7ffc61e57d8",
       "ownerWallet": "EHHVmFK3FM9qb2eyc8wnEwpHtVH3yW1FGZzrEGn4iSea",
       "marketValueWei": "1000000000",
@@ -396,23 +619,73 @@
   ],
   "fiatRatesCache": {
     "provider": "okx",
-    "base": "ETH",
+    "base": "SOL",
     "routes": {
-      "usd": "ETH-USDC",
-      "brl": "ETH-USDC * USDC-BRL"
+      "usd": "SOL-USDC",
+      "brl": "SOL-USDC * USDC-BRL"
     },
     "rates": {
-      "usd": "2323.16",
-      "brl": "11546.1052"
+      "usd": "93.02",
+      "brl": "456.82122"
     },
     "unavailable": [],
     "optionalRates": {
       "eur": null,
       "jpy": null
     },
-    "updatedAt": "2026-05-03T14:03:35.609Z"
+    "updatedAt": "2026-05-09T16:10:31.374Z"
   },
   "solanaTransactions": [
+    {
+      "signature": "2fuXDkBMqdHnPdXawBSdCAcf64mAKYRA4CAYKmS7maXGnZR7YSB2Kwh8SnFw9J9U5Rvcw14vAxvtara5qaWLvPr",
+      "kind": "tokenization",
+      "localPropertyId": "d36a95a6-afcf-4330-af35-6b45dc64bfab",
+      "propertyId": "10",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T16:05:30.685Z"
+    },
+    {
+      "signature": "2h6m4iavStEYT8HMiwNLZdnq22egMjhyhYHkj3bxA2wkz1vueuj3vnPJ6BeHF5bnDns1qNYMu3GvxV1hfLrPGQS5",
+      "kind": "primarySaleListing",
+      "localPropertyId": "313d5783-5640-4943-94f6-0a1d64575fba",
+      "propertyId": "11",
+      "listingId": "6",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T16:04:03.897Z"
+    },
+    {
+      "signature": "4GC6R6cEkexHGLYAjHPYeYGNVqzxHQq2RWQtJpecPwoXjeVEADYedGFDyrFduLQFKyk2vSg4jkVw1p74pusdXHvU",
+      "kind": "primarySaleListing",
+      "localPropertyId": "313d5783-5640-4943-94f6-0a1d64575fba",
+      "propertyId": "11",
+      "listingId": "5",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T16:02:14.953Z"
+    },
+    {
+      "signature": "5LbrcMDXHu7eLckpBoTSTrjhTTHros5MjTSCj5tsVKigeoZoCwZctZ6gks1yVvAFLZq87qj72JVzYxZReQbw9GDP",
+      "kind": "tokenization",
+      "localPropertyId": "313d5783-5640-4943-94f6-0a1d64575fba",
+      "propertyId": "11",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T16:00:59.755Z"
+    },
+    {
+      "signature": "3BDCCekjohEQhRHZXq1E9meZkWSExxxkQHuVapoyWeJ3ri3uYgAUrrTuaeL9ge2ZvqjjRb9Vykpo4gp4FYbfEAFo",
+      "kind": "registration",
+      "localPropertyId": "313d5783-5640-4943-94f6-0a1d64575fba",
+      "propertyId": "11",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T15:13:01.993Z"
+    },
+    {
+      "signature": "2nkMrZaFzyiyXq6AVpApg972ghnedjoV2oLwh4FiNZLa17eCUCHh1PDxSJ1omSTB45yy7JtrqbtJiqoPRWaZG37m",
+      "kind": "registration",
+      "localPropertyId": "d36a95a6-afcf-4330-af35-6b45dc64bfab",
+      "propertyId": "10",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-09T03:46:16.064Z"
+    },
     {
       "signature": "44h3qJ1HFybxNc44bbYxVsBpk6F9nGdse6ZuZ25kEc3QYpBL5Z6So9uStKgEU7FZiQvwDbQFSSBSxkLzo5wUnakk",
       "kind": "registration",

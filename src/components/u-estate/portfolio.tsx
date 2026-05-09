@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { formatUsd, truncate } from "./data";
+import { truncate } from "./data";
+import { formatUsdFromFiatRates } from "./fiat-rates";
 import { getWalletHoldings } from "./holdings";
 import {
   IconBell,
@@ -29,6 +30,7 @@ import type {
   Transaction,
   User,
 } from "./types";
+import { useFiatRates } from "./use-fiat-rates";
 
 export function PortfolioPage({
   properties,
@@ -44,6 +46,7 @@ export function PortfolioPage({
   navigate: Navigate;
   role: Role;
 }) {
+  const fiatRates = useFiatRates();
   const isBuyer = role === "buyer";
   const [tab, setTab] = useState<"holdings" | "owned" | "history">(
     isBuyer ? "holdings" : "owned",
@@ -119,7 +122,7 @@ export function PortfolioPage({
               {totalInvestedSOL.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalInvestedSOL)}
+              ≈ {formatUsdFromFiatRates(totalInvestedSOL, fiatRates)}
             </div>
             <div
               className="text-xs mt-12"
@@ -143,7 +146,7 @@ export function PortfolioPage({
               {totalHoldingsvalueEth.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalHoldingsvalueEth)}
+              ≈ {formatUsdFromFiatRates(totalHoldingsvalueEth, fiatRates)}
             </div>
             <div
               className="text-xs mt-12 fw-700"
@@ -186,7 +189,7 @@ export function PortfolioPage({
               {pnl.toFixed(3)} SOL
             </div>
             <div className="text-sm" style={{ opacity: 0.7 }}>
-              ≈ {formatUsd(Math.abs(pnl))}
+              ≈ {formatUsdFromFiatRates(Math.abs(pnl), fiatRates)}
             </div>
             <div className="text-xs mt-12" style={{ opacity: 0.6 }}>
               desde o primeiro investimento
@@ -210,7 +213,7 @@ export function PortfolioPage({
               {totalOwnedvalueEth.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalOwnedvalueEth)}
+              ≈ {formatUsdFromFiatRates(totalOwnedvalueEth, fiatRates)}
             </div>
             <div
               className="text-xs mt-12"
@@ -235,7 +238,7 @@ export function PortfolioPage({
               {totalHoldingsvalueEth.toFixed(3)} SOL
             </div>
             <div className="muted text-sm">
-              ≈ {formatUsd(totalHoldingsvalueEth)}
+              ≈ {formatUsdFromFiatRates(totalHoldingsvalueEth, fiatRates)}
             </div>
             <div
               className="text-xs mt-12"
@@ -267,7 +270,10 @@ export function PortfolioPage({
               {(totalOwnedvalueEth + totalHoldingsvalueEth).toFixed(3)} SOL
             </div>
             <div className="text-sm" style={{ opacity: 0.7 }}>
-              ≈ {formatUsd(totalOwnedvalueEth + totalHoldingsvalueEth)}
+              ≈ {formatUsdFromFiatRates(
+                totalOwnedvalueEth + totalHoldingsvalueEth,
+                fiatRates,
+              )}
             </div>
           </div>
         </div>

@@ -682,7 +682,7 @@ describe("usufruct_protocol", () => {
     assert.equal(usufruct.active, true);
   });
 
-  it("rejects tokenization before mock verification and duplicate tokenization", async () => {
+  it("tokenizes after registration without third-party verification and rejects duplicate tokenization", async () => {
     const state = await accounts.protocolState.fetch(
       derive([Buffer.from("protocol_state")])[0],
     );
@@ -690,10 +690,7 @@ describe("usufruct_protocol", () => {
       BigInt(state.nextPropertyId.toString()),
     );
 
-    await expectAnchorError(
-      () => tokenizeProperty(pendingProperty),
-      "PropertyNotMockVerified",
-    );
+    await tokenizeProperty(pendingProperty);
 
     const { property } = await registerAndMockVerifyNextProperty();
     await tokenizeProperty(property);
@@ -1083,6 +1080,69 @@ describe("usufruct_protocol", () => {
 
     const sellerAfter = await provider.connection.getBalance(owner.publicKey);
     assert.ok(sellerAfter > sellerBefore + 60_000_000);
+  });
+
+  it("buys a selected amount, keeps the remaining listing active, then fills it", async () => {
+    const { property, tokenized, created } = await setupActiveListing(300_000);
+    const buyer = Keypair.generate();
+    const buyerTokenAccount = await createBuyerTokenAccount(buyer, tokenized.valueMint);
+
+    await buyPrimarySaleListing(
+      property,
+      tokenized,
+      created,
+      buyer,
+      buyerTokenAccount,
+      100_000,
+      20_000_000,
+    );
+
+    const partialListing = await accounts.listingAccount.fetch(created.listing);
+    assert.deepEqual(partialListing.status, { active: {} });
+    assert.equal(partialListing.amount.toString(), "200000");
+    assert.equal(partialListing.priceLamports.toString(), "40000000");
+
+    const partialProperty = await accounts.propertyAccount.fetch(property);
+    assert.deepEqual(partialProperty.status, { activeSale: {} });
+    assert.equal(partialProperty.activeListingsCount.toString(), "1");
+    assert.equal(partialProperty.activeEscrowedAmount.toString(), "200000");
+    assert.equal(partialProperty.totalFreeValueSold.toString(), "100000");
+
+    const partialBuyerToken = await getAccount(provider.connection, buyerTokenAccount);
+    assert.equal(partialBuyerToken.amount, 100_000n);
+    const partialEscrow = await getAccount(
+      provider.connection,
+      created.escrowTokenAccount,
+    );
+    assert.equal(partialEscrow.amount, 200_000n);
+
+    await buyPrimarySaleListing(
+      property,
+      tokenized,
+      created,
+      buyer,
+      buyerTokenAccount,
+      200_000,
+      40_000_000,
+    );
+
+    const filledListing = await accounts.listingAccount.fetch(created.listing);
+    assert.deepEqual(filledListing.status, { filled: {} });
+    assert.equal(filledListing.amount.toString(), "0");
+    assert.equal(filledListing.priceLamports.toString(), "0");
+
+    const filledProperty = await accounts.propertyAccount.fetch(property);
+    assert.deepEqual(filledProperty.status, { tokenized: {} });
+    assert.equal(filledProperty.activeListingsCount.toString(), "0");
+    assert.equal(filledProperty.activeEscrowedAmount.toString(), "0");
+    assert.equal(filledProperty.totalFreeValueSold.toString(), "300000");
+
+    const filledBuyerToken = await getAccount(provider.connection, buyerTokenAccount);
+    assert.equal(filledBuyerToken.amount, 300_000n);
+    const escrowAccountInfo = await provider.connection.getAccountInfo(
+      created.escrowTokenAccount,
+    );
+    assert.equal(escrowAccountInfo, null);
   });
 
   it("rejects buyer equal to seller and stale expected values", async () => {

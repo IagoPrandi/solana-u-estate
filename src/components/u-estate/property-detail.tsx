@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import type { AppActions } from "./app";
-import { formatBrl, formatEth, formatUnits, formatUsd } from "./data";
+import { formatEth, formatUnits } from "./data";
 import { getErrorMessage } from "./error-utils";
+import {
+  formatBrlFromFiatRates,
+  formatUsdFromFiatRates,
+} from "./fiat-rates";
 import { listingIdentity } from "./listing-identity";
 import {
   IconArrowRight,
@@ -34,6 +38,7 @@ import type {
 } from "./types";
 import type { WalletState } from "./wallet";
 import { isTxPending } from "./transaction-guards";
+import { useFiatRates } from "./use-fiat-rates";
 
 function ownerJourney(p: Property) {
   return [
@@ -51,7 +56,7 @@ function ownerJourney(p: Property) {
         p.status === "Rejected"
           ? p.rejection?.reason ?? "Documentação rejeitada pelo validador."
           : p.status === "PendingMockVerification"
-            ? "Validando documentos com a equipe…"
+            ? "Validação documental opcional. A tokenização já está disponível."
             : "Documentos validados.",
       done: (
         ["MockVerified", "Tokenized", "ActiveSale", "SoldOut"] as PropertyStatus[]
@@ -69,9 +74,9 @@ function ownerJourney(p: Property) {
             ? "Oferta concluída."
             : "Defina quanto quer captar.",
       done: (["ActiveSale", "SoldOut"] as PropertyStatus[]).includes(p.status),
-      active: (["MockVerified", "Tokenized"] as PropertyStatus[]).includes(
-        p.status,
-      ),
+      active: (
+        ["PendingMockVerification", "MockVerified", "Tokenized"] as PropertyStatus[]
+      ).includes(p.status),
     },
     {
       key: "capture",
@@ -99,6 +104,7 @@ export function PropertyDetailPage({
   actions: AppActions;
   wallet: WalletState;
 }) {
+  const fiatRates = useFiatRates();
   const [showTech, setShowTech] = useState(false);
   const [tx, setTx] = useState<{
     open: boolean;
@@ -142,9 +148,10 @@ export function PropertyDetailPage({
   const capturedSOL =
     Number(p.marketValueEth) * (p.soldFreeValueUnits / p.totalValueUnits);
   const primary = (() => {
-    if (p.status === "PendingMockVerification")
-      return null;
-    if (p.status === "MockVerified")
+    if (
+      p.status === "PendingMockVerification" ||
+      p.status === "MockVerified"
+    )
       return {
         label: "Tokenizar imóvel",
         go: () =>
@@ -254,7 +261,7 @@ export function PropertyDetailPage({
                     {formatEth(p.marketValueEth)}
                   </div>
                   <div className="muted text-sm">
-                    ≈ {formatUsd(p.marketValueEth)}
+                    ≈ {formatUsdFromFiatRates(p.marketValueEth, fiatRates)}
                   </div>
                 </div>
                 {p.status === "ActiveSale" || p.status === "SoldOut" ? (
@@ -667,31 +674,43 @@ export function PropertyDetailPage({
             </div>
           </div>
 
-          {p.status === "PendingMockVerification" && (
+          {isOwner && p.status === "PendingMockVerification" && (
             <div
               className="card card-pad"
               style={{
-                background: "var(--color-orange-soft)",
-                borderColor: "var(--color-orange)",
+                background: "var(--color-charcoal)",
+                color: "#fff",
+                borderColor: "var(--color-charcoal)",
               }}
             >
               <div
                 className="row row-gap"
-                style={{ color: "var(--color-orange-muted)" }}
+                style={{ color: "#fff" }}
               >
-                <IconClock size={18} />
-                <div className="text-sm fw-700">Em análise</div>
+                <IconShield size={18} style={{ color: "var(--color-orange)" }} />
+                <div className="text-sm fw-700">Pronto para tokenizar</div>
               </div>
               <div
                 className="text-sm mt-12"
                 style={{
-                  color: "var(--color-charcoal-soft)",
+                  opacity: 0.75,
                   lineHeight: 1.55,
                 }}
               >
-                Nossa equipe está validando os documentos. Costuma levar até
-                24h. Você será avisado por aqui assim que terminar.
+                A validação de documentos por terceiro é opcional e não bloqueia
+                a geração dos tokens do imóvel.
               </div>
+              <button
+                className="btn btn-primary w-100 mt-16"
+                disabled={txPending}
+                onClick={() =>
+                  void runChainAction("Tokenizando imóvel", (onStep) =>
+                    actions.tokenizeProperty(p.id, p.propertyId, onStep),
+                  )
+                }
+              >
+                Tokenizar imóvel <IconArrowRight size={14} />
+              </button>
             </div>
           )}
 
@@ -993,6 +1012,7 @@ export function PropertyPublishPage({
   navigate: Navigate;
   actions: AppActions;
 }) {
+  const fiatRates = useFiatRates();
   const totalAvailableUnits = property
     ? property.freeValueUnits - property.soldFreeValueUnits
     : 0;
@@ -1144,7 +1164,8 @@ export function PropertyPublishPage({
                 className="text-sm mt-12"
                 style={{ color: "var(--color-charcoal-soft)" }}
               >
-                ≈ {formatUsd(priceSOL)} · {formatBrl(priceSOL)}
+                ≈ {formatUsdFromFiatRates(priceSOL, fiatRates)} ·{" "}
+                {formatBrlFromFiatRates(priceSOL, fiatRates)}
               </div>
               <div
                 className="text-xs mt-12"
@@ -1167,7 +1188,9 @@ export function PropertyPublishPage({
               <div className="fw-800 text-2xl mono mt-12">
                 {minTicket.toFixed(4)} SOL
               </div>
-              <div className="muted text-sm">≈ {formatUsd(minTicket)}</div>
+              <div className="muted text-sm">
+                ≈ {formatUsdFromFiatRates(minTicket, fiatRates)}
+              </div>
               <div className="text-xs mt-12 muted">
                 Cada investidor compra a partir desse valor
               </div>

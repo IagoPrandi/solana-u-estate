@@ -95,6 +95,15 @@ describe("transaction guards", () => {
     expect(() => assertValid()).not.toThrow();
   });
 
+  it("accepts fresh partial listing purchase snapshots", () => {
+    expect(() =>
+      assertValid({
+        requestedAmount: 75_000n,
+        requestedPriceLamports: 15_000_000n,
+      }),
+    ).not.toThrow();
+  });
+
   it("rejects stale local listings", () => {
     expect(() =>
       assertValid({
@@ -111,6 +120,12 @@ describe("transaction guards", () => {
   it("rejects stale price snapshots", () => {
     expect(() => assertValid({ requestedPriceLamports: 59_999_999n })).toThrow(
       "Stale listing price",
+    );
+  });
+
+  it("rejects purchase amounts above the listing balance", () => {
+    expect(() => assertValid({ requestedAmount: 300_001n })).toThrow(
+      "Purchase amount exceeds",
     );
   });
 

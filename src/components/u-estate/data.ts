@@ -17,7 +17,7 @@ export const formatEth = (eth: string | number) => {
   return n.toFixed(2) + " SOL";
 };
 
-export const formatUsd = (sol: string | number, rate = 150) => {
+export const formatUsd = (sol: string | number, rate: number) => {
   const n = Number(sol) * rate;
   return n.toLocaleString("en-US", {
     style: "currency",
@@ -26,7 +26,7 @@ export const formatUsd = (sol: string | number, rate = 150) => {
   });
 };
 
-export const formatBrl = (sol: string | number, rate = 780) => {
+export const formatBrl = (sol: string | number, rate: number) => {
   const n = Number(sol) * rate;
   return n.toLocaleString("pt-BR", {
     style: "currency",

@@ -30,21 +30,66 @@ import type {
   TxStep,
 } from "./types";
 import { isTxPending } from "./transaction-guards";
+import { useFiatRates } from "./use-fiat-rates";
 
 type ValueCurrency = "SOL" | "usdc" | "usdt";
 
-const SOL_RATE = 2350; // USD per SOL
+const RESERVED_PCT_MIN = 5;
+const RESERVED_PCT_MAX = 50;
+const RESERVED_PCT_STEP = 5;
 
 function normalizeDecimal(raw: string) {
   return raw.trim().replace(/,/g, ".");
 }
 
-function toSOL(raw: string, currency: ValueCurrency): string {
+function parsePositiveNumber(raw: string) {
   const normalized = normalizeDecimal(raw);
   const n = Number(normalized);
-  if (!raw || isNaN(n) || n <= 0) return "";
-  if (currency === "SOL") return normalized;
-  return (n / SOL_RATE).toFixed(6);
+  if (!raw || !Number.isFinite(n) || n <= 0) return null;
+  return n;
+}
+
+function toSOLNumber(
+  raw: string,
+  currency: ValueCurrency,
+  solUsdRate: number | null,
+) {
+  const n = parsePositiveNumber(raw);
+  if (n === null) return null;
+  if (currency === "SOL") return n;
+  if (!solUsdRate || solUsdRate <= 0) return null;
+  return n / solUsdRate;
+}
+
+function toSolDecimal(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return value
+    .toFixed(9)
+    .replace(/\.?0+$/, "");
+}
+
+function formatSolAmount(value: number, maxDigits = 6) {
+  if (!Number.isFinite(value) || value <= 0) return "0";
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: value < 0.001 ? 6 : 0,
+    maximumFractionDigits: maxDigits,
+  });
+}
+
+function formatInputAmount(raw: string) {
+  const n = Number(normalizeDecimal(raw));
+  if (!raw || !Number.isFinite(n)) return "0";
+  return n.toLocaleString("en-US", { maximumFractionDigits: 6 });
+}
+
+function formatStableUsdAmount(raw: string) {
+  const n = Number(normalizeDecimal(raw));
+  if (!raw || !Number.isFinite(n) || n <= 0) return null;
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 }
 
 function isCoordinate(value: string) {
@@ -199,6 +244,7 @@ export function PropertyNewPage({
   });
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const fiatRates = useFiatRates();
   const txPending = isTxPending(tx.open, tx.step);
 
   // File input refs per document type
@@ -261,7 +307,31 @@ export function PropertyNewPage({
     },
   ];
 
-  const marketValueEth = toSOL(data.marketValueInput, data.valueCurrency);
+  const marketValueInputNumber = parsePositiveNumber(data.marketValueInput);
+  const marketValueSOLNumber = toSOLNumber(
+    data.marketValueInput,
+    data.valueCurrency,
+    fiatRates.usdRate,
+  );
+  const hasMarketValueSOL = marketValueSOLNumber !== null;
+  const marketValueEth = hasMarketValueSOL
+    ? toSolDecimal(marketValueSOLNumber)
+    : "";
+  const reservedFraction = data.reservedPct / 100;
+  const investorFraction = 1 - reservedFraction;
+  const investorPct = 100 - data.reservedPct;
+  const reservedValueSOL = hasMarketValueSOL
+    ? marketValueSOLNumber * reservedFraction
+    : null;
+  const expectedRaiseSOL = hasMarketValueSOL
+    ? marketValueSOLNumber * investorFraction
+    : null;
+  const reservedRangeProgress =
+    ((data.reservedPct - RESERVED_PCT_MIN) /
+      (RESERVED_PCT_MAX - RESERVED_PCT_MIN)) *
+    100;
+  const stableUsdAmount =
+    data.valueCurrency === "SOL" ? null : formatStableUsdAmount(data.marketValueInput);
   const requiredDocumentTypes = docTypes
     .filter((documentType) => documentType.required)
     .map((documentType) => documentType.type);
@@ -334,17 +404,33 @@ export function PropertyNewPage({
   };
 
   const currencyHelp = () => {
-    const n = Number(normalizeDecimal(data.marketValueInput));
-    if (!data.marketValueInput || isNaN(n) || n <= 0) {
+    if (marketValueInputNumber === null) {
       if (data.valueCurrency === "SOL")
         return "Valor de mercado estimado em SOL.";
+      if (fiatRates.loading) return "Loading OKX SOL-USDC rate.";
+      if (fiatRates.error) return `OKX rates unavailable: ${fiatRates.error}`;
       return `Valor de mercado estimado em ${currencyLabels[data.valueCurrency]} (1:1 com USD).`;
     }
+    if (fiatRates.loading) return "Loading OKX SOL-USDC rate.";
+    if (fiatRates.error) return `OKX rates unavailable: ${fiatRates.error}`;
     if (data.valueCurrency === "SOL") {
-      return `Equivalente: ${formatUsd(data.marketValueInput)} · ${formatBrl(data.marketValueInput)}`;
+      const usd = fiatRates.usdRate
+        ? formatUsd(marketValueInputNumber, fiatRates.usdRate)
+        : "USD unavailable";
+      const brl = fiatRates.brlRate
+        ? formatBrl(marketValueInputNumber, fiatRates.brlRate)
+        : "BRL unavailable";
+      return `Equivalent: ${usd} · ${brl}`;
     }
-    const SOL = Number(marketValueEth);
-    return `≈ ${SOL.toFixed(6)} SOL · ${formatBrl(SOL)}`;
+    if (!fiatRates.usdRate) return "OKX SOL-USDC rate unavailable.";
+    if (!hasMarketValueSOL) return "Could not convert value to SOL.";
+    const brl = fiatRates.brlRate
+      ? ` · ${formatBrl(marketValueSOLNumber, fiatRates.brlRate)}`
+      : "";
+    return `≈ ${formatSolAmount(marketValueSOLNumber, 9)} SOL · ${formatUsd(
+      marketValueSOLNumber,
+      fiatRates.usdRate,
+    )}${brl}`;
   };
 
   return (
@@ -452,21 +538,26 @@ export function PropertyNewPage({
                 <input
                   type="range"
                   className="range-orange"
-                  min="5"
-                  max="50"
-                  step="5"
+                  min={RESERVED_PCT_MIN}
+                  max={RESERVED_PCT_MAX}
+                  step={RESERVED_PCT_STEP}
                   value={data.reservedPct}
+                  style={
+                    {
+                      "--range-progress": `${reservedRangeProgress}%`,
+                    } as React.CSSProperties
+                  }
                   onChange={(e) =>
                     update("reservedPct", Number(e.target.value))
                   }
                 />
                 <div className="row-between text-xs muted">
-                  <span>5% (máxima captação)</span>
-                  <span>50% (cautela)</span>
+                  <span>{RESERVED_PCT_MIN}% (máxima captação)</span>
+                  <span>{RESERVED_PCT_MAX}% (cautela)</span>
                 </div>
                 <span className="field-help">
                   Esta parte fica garantida pra você, junto com o direito de
-                  morar. Os outros {100 - data.reservedPct}% poderão ser
+                  morar. Os outros {investorPct}% poderão ser
                   ofertados a investidores.
                 </span>
               </div>
@@ -599,8 +690,8 @@ export function PropertyNewPage({
                   Documentos
                 </h3>
                 <div className="muted text-sm mt-12">
-                  Anexe os documentos do imóvel. Nossa equipe valida a
-                  documentação para você antes da publicação.
+                  Anexe os documentos do imóvel para o registro off-chain.
+                  Document review is optional and does not block tokenization.
                 </div>
               </div>
               <div className="col col-gap">
@@ -719,8 +810,18 @@ export function PropertyNewPage({
                   <div className="mono fw-700 text-lg">
                     {data.marketValueInput || "0"} {currencyLabels[data.valueCurrency]}
                   </div>
-                  {data.valueCurrency !== "SOL" && marketValueEth && (
-                    <div className="muted text-xs">≈ {marketValueEth} SOL</div>
+                  {data.valueCurrency !== "SOL" && hasMarketValueSOL && (
+                    <div className="muted text-xs">
+                      ≈ {formatSolAmount(marketValueSOLNumber, 9)} SOL
+                    </div>
+                  )}
+                  {data.valueCurrency !== "SOL" && stableUsdAmount && (
+                    <div className="muted text-xs">≈ {stableUsdAmount}</div>
+                  )}
+                  {data.valueCurrency === "SOL" && hasMarketValueSOL && fiatRates.usdRate && (
+                    <div className="muted text-xs">
+                      ≈ {formatUsd(marketValueSOLNumber, fiatRates.usdRate)}
+                    </div>
                   )}
                 </div>
                 <div
@@ -735,19 +836,33 @@ export function PropertyNewPage({
                       fontWeight: 600,
                     }}
                   >
-                    Captação prevista
-                  </div>
-                  <div className="fw-800 text-lg mt-12">
+                  Captação prevista
+                </div>
+                <div className="fw-800 text-lg mt-12">
                     até{" "}
-                    {(
-                      (Number(marketValueEth || 0) *
-                        (100 - data.reservedPct)) /
-                      100
-                    ).toFixed(3)}{" "}
-                    SOL
+                    {expectedRaiseSOL === null
+                      ? "cotação OKX indisponível"
+                      : `${formatSolAmount(expectedRaiseSOL, 9)} SOL`}
                   </div>
                   <div className="muted text-sm">
                     se você ofertar 100% da parte disponível
+                  </div>
+                  <div className="divider-dashed" />
+                  <div className="row-between">
+                    <span className="text-sm muted">Valor reservado</span>
+                    <strong>
+                      {reservedValueSOL === null
+                        ? "cotação indisponível"
+                        : `${formatSolAmount(reservedValueSOL, 9)} SOL`}
+                    </strong>
+                  </div>
+                  <div className="row-between mt-12">
+                    <span className="text-sm muted">Captação possível</span>
+                    <strong>
+                      {expectedRaiseSOL === null
+                        ? "cotação indisponível"
+                        : `${formatSolAmount(expectedRaiseSOL, 9)} SOL`}
+                    </strong>
                   </div>
                   <div className="divider-dashed" />
                   <div className="row-between">
@@ -758,7 +873,7 @@ export function PropertyNewPage({
                     <span className="text-sm muted">
                       Disponível para investidores
                     </span>
-                    <strong>{100 - data.reservedPct}%</strong>
+                    <strong>{investorPct}%</strong>
                   </div>
                 </div>
               </div>
@@ -783,8 +898,8 @@ export function PropertyNewPage({
                     lineHeight: 1.55,
                   }}
                 >
-                  Nossa equipe analisa os documentos em até 24h. Quando
-                  aprovado, você publica a oferta com um clique.
+                  Document review is optional and non-blocking. After registration,
+                  you can tokenize the property without third-party approval.
                 </div>
               </div>
             </div>
@@ -833,12 +948,12 @@ export function PropertyNewPage({
               <button
                 className="btn btn-primary"
                 type="button"
-                disabled={txPending}
+                disabled={txPending || !marketValueEth}
                 onClick={() => {
                   void submit();
                 }}
               >
-                Enviar para análise <IconArrowRight size={14} />
+                Registrar imóvel <IconArrowRight size={14} />
               </button>
             )}
           </div>
@@ -876,16 +991,50 @@ export function PropertyNewPage({
               <div className="divider-dashed" />
               <div className="muted text-xs">Avaliação</div>
               <div className="fw-800 text-xl mono">
-                {data.marketValueInput || "0.000"} {currencyLabels[data.valueCurrency]}
+                {data.valueCurrency === "SOL"
+                  ? `${formatSolAmount(marketValueSOLNumber ?? 0, 9)} SOL`
+                  : `${formatInputAmount(data.marketValueInput)} ${currencyLabels[data.valueCurrency]}`}
               </div>
-              {data.marketValueInput && data.valueCurrency !== "SOL" && (
-                <div className="muted text-sm">≈ {marketValueEth} SOL</div>
-              )}
-              {data.marketValueInput && data.valueCurrency === "SOL" && (
+              {data.marketValueInput && data.valueCurrency !== "SOL" && hasMarketValueSOL && (
                 <div className="muted text-sm">
-                  ≈ {formatUsd(data.marketValueInput)}
+                  ≈ {formatSolAmount(marketValueSOLNumber, 9)} SOL
                 </div>
               )}
+              {data.marketValueInput &&
+                data.valueCurrency !== "SOL" &&
+                !hasMarketValueSOL && (
+                  <div className="muted text-sm">
+                    {fiatRates.loading
+                      ? "Loading OKX SOL quote"
+                      : "OKX SOL quote unavailable"}
+                  </div>
+                )}
+              {data.marketValueInput &&
+                data.valueCurrency === "SOL" &&
+                hasMarketValueSOL &&
+                fiatRates.usdRate && (
+                <div className="muted text-sm">
+                  ≈ {formatUsd(marketValueSOLNumber, fiatRates.usdRate)}
+                </div>
+              )}
+              {data.marketValueInput && data.valueCurrency !== "SOL" && stableUsdAmount && (
+                <div className="muted text-sm">≈ {stableUsdAmount}</div>
+              )}
+              <div className="divider-dashed" />
+              <div className="row-between text-sm">
+                <span className="muted">Reserved for you</span>
+                <strong>{data.reservedPct}%</strong>
+              </div>
+              <div className="row-between text-sm mt-12">
+                <span className="muted">Available to investors</span>
+                <strong>{investorPct}%</strong>
+              </div>
+              <div className="progress mt-12" aria-hidden="true">
+                <div
+                  className="progress-bar"
+                  style={{ width: `${data.reservedPct}%` }}
+                />
+              </div>
             </div>
           </div>
           <div

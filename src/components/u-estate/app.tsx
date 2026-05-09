@@ -5,11 +5,7 @@ import type { SavedPropertyRecord } from "@/offchain/schemas";
 import { lamportsToSolDecimal } from "@/lib/solana/instructions";
 import { useUEstateActions, type NewPropertyForm } from "./actions";
 import { DashboardPage } from "./dashboard";
-import {
-  formatBrl,
-  formatUsd,
-  initialUser,
-} from "./data";
+import { initialUser } from "./data";
 import { LandingPage } from "./landing";
 import { getWalletHoldingForProperty } from "./holdings";
 import { InvestmentDetailPage } from "./investment-detail";
@@ -301,10 +297,6 @@ export function UEstateApp() {
       cancelListing,
     ],
   );
-
-  // Avoid unused warning while still allowing callers to surface fiat helpers
-  void formatBrl;
-  void formatUsd;
 
   const walletAddr = wallet.address?.toLowerCase();
 

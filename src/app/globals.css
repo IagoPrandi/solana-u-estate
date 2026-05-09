@@ -895,7 +895,11 @@ input[type="range"].range-orange {
   appearance: none;
   width: 100%;
   height: 8px;
-  background: var(--color-surface-soft);
+  background: linear-gradient(
+    to right,
+    var(--color-orange) 0 var(--range-progress, 0%),
+    var(--color-surface-soft) var(--range-progress, 0%) 100%
+  );
   border-radius: var(--radius-pill);
   outline: none;
 }

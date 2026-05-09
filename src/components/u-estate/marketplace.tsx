@@ -4,12 +4,13 @@ import { useMemo, useState } from "react";
 import type { AppActions } from "./app";
 import { ethToWei } from "./actions";
 import {
-  formatBrl,
   formatEth,
   formatUnits,
-  formatUsd,
 } from "./data";
-import { lamportsToSolDecimal } from "@/lib/solana/instructions";
+import {
+  formatBrlFromFiatRates,
+  formatUsdFromFiatRates,
+} from "./fiat-rates";
 import {
   IconCheck,
   IconCoins,
@@ -26,12 +27,53 @@ import {
 } from "./ui";
 import { listingIdentity } from "./listing-identity";
 import { isTxPending } from "./transaction-guards";
+import { useFiatRates } from "./use-fiat-rates";
 import type {
   Listing,
   Navigate,
   Property,
   TxStep,
 } from "./types";
+
+export function computeListingInvestmentQuote({
+  listingAmount,
+  listingPriceSOL,
+  propertyTotalValueUnits,
+  requestedUnits,
+  minUnits = 1000,
+}: {
+  listingAmount: number;
+  listingPriceSOL: number;
+  propertyTotalValueUnits: number;
+  requestedUnits: number;
+  minUnits?: number;
+}) {
+  const safeListingAmount = Math.max(0, Math.round(listingAmount));
+  const minimumUnits =
+    safeListingAmount > 0 ? Math.min(minUnits, safeListingAmount) : 0;
+  const selectedUnits =
+    safeListingAmount > 0
+      ? Math.min(Math.max(Math.round(requestedUnits), minimumUnits), safeListingAmount)
+      : 0;
+  const pricePerUnitSOL =
+    safeListingAmount > 0 ? listingPriceSOL / safeListingAmount : 0;
+  const totalPriceSOL = pricePerUnitSOL * selectedUnits;
+
+  return {
+    minimumUnits,
+    selectedUnits,
+    isFullListingSelected:
+      safeListingAmount > 0 && selectedUnits === safeListingAmount,
+    pricePerUnitSOL,
+    totalPriceSOL,
+    pctOfOffer:
+      safeListingAmount > 0 ? (selectedUnits / safeListingAmount) * 100 : 0,
+    pctOfProperty:
+      propertyTotalValueUnits > 0
+        ? (selectedUnits / propertyTotalValueUnits) * 100
+        : 0,
+  };
+}
 
 export function MarketplacePage({
   properties,
@@ -323,11 +365,10 @@ export function ListingDetailPage({
   actions: AppActions;
   walletAddress?: string;
 }) {
+  const fiatRates = useFiatRates();
   const minUnits = 1000;
   const initialUnits = listing
-    ? actions.ready
-      ? listing.amount
-      : Math.min(5000, Math.max(minUnits, listing.amount))
+    ? Math.min(5000, Math.max(Math.min(minUnits, listing.amount), listing.amount))
     : 0;
   const [units, setUnits] = useState(initialUnits);
   const [tx, setTx] = useState<{ open: boolean; step: TxStep }>({
@@ -344,32 +385,56 @@ export function ListingDetailPage({
       </div>
     );
 
-  const TOTAL_VALUE_UNITS = 1_000_000n;
-  const marketValueWei = ethToWei(property.marketValueEth);
-  const selectedUnits = actions.ready ? listing.amount : units;
-  const payWei = actions.ready
-    ? ethToWei(listing.priceWei)
-    : (marketValueWei * BigInt(selectedUnits)) / TOTAL_VALUE_UNITS;
-  const totalPrice = Number(lamportsToSolDecimal(payWei, 9));
-  const pricePerUnit =
-    listing.amount > 0
-      ? Number(listing.priceWei) / listing.amount
-      : 0;
-  const pctOfProp = (selectedUnits / property.totalValueUnits) * 100;
+  const quote = computeListingInvestmentQuote({
+    listingAmount: listing.amount,
+    listingPriceSOL: Number(listing.priceWei),
+    propertyTotalValueUnits: property.totalValueUnits,
+    requestedUnits: units,
+    minUnits,
+  });
+  const {
+    minimumUnits,
+    selectedUnits,
+    pricePerUnitSOL: pricePerUnit,
+    totalPriceSOL: totalPrice,
+    pctOfOffer,
+    pctOfProperty: pctOfProp,
+  } = quote;
+  const listingPriceLamports = ethToWei(listing.priceWei);
+  const payWei = (listingPriceLamports * BigInt(selectedUnits)) / BigInt(listing.amount);
   const offerPctOfProp = (listing.amount / property.totalValueUnits) * 100;
   const isSellerWallet =
     Boolean(walletAddress) &&
     walletAddress?.toLowerCase() === listing.seller.toLowerCase();
   const isOnchainLinked = Boolean(listing.localPropertyId);
   const buyDisabled =
-    isSellerWallet || !actions.ready || (actions.ready && !isOnchainLinked);
+    isSellerWallet ||
+    !actions.ready ||
+    (actions.ready && !isOnchainLinked) ||
+    payWei <= 0n;
   const buyDisabledMessage = isSellerWallet
-    ? "Conecte uma carteira compradora diferente da carteira vendedora desta oferta."
+    ? "Connect a buyer wallet that differs from this listing's seller wallet."
     : !actions.ready
       ? "Connect a Solana Devnet wallet with the configured program before buying a listing."
     : actions.ready && !isOnchainLinked
       ? "This listing is not linked to the current local on-chain record. Refresh before buying."
+    : payWei <= 0n
+      ? "Selected amount is too small for on-chain settlement."
       : null;
+
+  const setSelectedUnits = (nextUnits: number) => {
+    setUnits(
+      Math.min(Math.max(Math.round(nextUnits), minimumUnits), listing.amount),
+    );
+  };
+
+  const setSelectedOfferPct = (pct: number) => {
+    if (pct >= 100) {
+      setSelectedUnits(listing.amount);
+      return;
+    }
+    setSelectedUnits((listing.amount * pct) / 100);
+  };
 
   const start = async () => {
     setErrorMessage(null);
@@ -390,7 +455,7 @@ export function ListingDetailPage({
     } catch (error) {
       setTx({ open: false, step: "sign" });
       setErrorMessage(
-        error instanceof Error ? error.message : "Falha ao concluir compra.",
+        error instanceof Error ? error.message : "Could not complete purchase.",
       );
     }
   };
@@ -463,7 +528,7 @@ export function ListingDetailPage({
                     {formatEth(property.marketValueEth)}
                   </div>
                   <div className="muted text-sm">
-                    ≈ {formatUsd(property.marketValueEth)}
+                    ≈ {formatUsdFromFiatRates(property.marketValueEth, fiatRates)}
                   </div>
                 </div>
                 <div>
@@ -478,10 +543,10 @@ export function ListingDetailPage({
                     Investimento mínimo
                   </div>
                   <div className="fw-800 text-xl mono mt-12">
-                    {(pricePerUnit * minUnits).toFixed(4)} SOL
+                    {(pricePerUnit * minimumUnits).toFixed(4)} SOL
                   </div>
                   <div className="muted text-sm">
-                    ≈ {formatUsd(pricePerUnit * minUnits)}
+                    ≈ {formatUsdFromFiatRates(pricePerUnit * minimumUnits, fiatRates)}
                   </div>
                 </div>
                 <div>
@@ -678,12 +743,12 @@ export function ListingDetailPage({
               <input
                 type="range"
                 className="range-orange"
-                min={Math.min(minUnits, listing.amount)}
+                min={minimumUnits}
                 max={listing.amount}
-                step="1000"
+                step={Math.max(1, Math.min(1000, listing.amount))}
                 value={selectedUnits}
-                disabled={actions.ready || txPending}
-                onChange={(e) => setUnits(Number(e.target.value))}
+                disabled={txPending}
+                onChange={(e) => setSelectedUnits(Number(e.target.value))}
               />
               <div className="row-between text-xs muted mt-12">
                 <span>Mínimo</span>
@@ -698,6 +763,47 @@ export function ListingDetailPage({
                 </strong>
                 <span>Máximo desta oferta</span>
               </div>
+            </div>
+
+            <div
+              className="row row-gap-sm mt-16"
+              style={{ flexWrap: "wrap" }}
+            >
+              {[25, 50, 75, 100].map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  className={
+                    "btn btn-sm " +
+                    (Math.round(pctOfOffer) === pct
+                      ? "btn-primary"
+                      : "btn-neutral")
+                  }
+                  disabled={txPending}
+                  onClick={() => setSelectedOfferPct(pct)}
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
+
+            <div className="field mt-16">
+              <label className="field-label">Offer units</label>
+              <input
+                className="input mono"
+                type="number"
+                min={minimumUnits}
+                max={listing.amount}
+                step={Math.max(1, Math.min(1000, listing.amount))}
+                value={selectedUnits}
+                disabled={txPending}
+                onChange={(e) => setSelectedUnits(Number(e.target.value))}
+              />
+              <span className="field-help">
+                Price is prorated from the active listing:{" "}
+                {Number(listing.priceWei).toFixed(6)} SOL for{" "}
+                {formatUnits(listing.amount)} units.
+              </span>
             </div>
 
             <div
@@ -729,20 +835,31 @@ export function ListingDetailPage({
                 className="text-sm mt-12"
                 style={{ color: "var(--color-charcoal-soft)" }}
               >
-                ≈ {formatUsd(totalPrice)} · {formatBrl(totalPrice)}
+                ≈ {formatUsdFromFiatRates(totalPrice, fiatRates)} ·{" "}
+                {formatBrlFromFiatRates(totalPrice, fiatRates)}
               </div>
             </div>
 
             <div className="col col-gap-sm mt-24">
               <div className="row-between">
                 <span className="muted text-sm">
-                  Sua participação no imóvel
+                  Property participation
                 </span>
                 <strong>{pctOfProp.toFixed(3)}%</strong>
               </div>
               <div className="row-between">
-                <span className="muted text-sm">Unidades</span>
+                <span className="muted text-sm">Units</span>
                 <strong>{formatUnits(selectedUnits)}</strong>
+              </div>
+              <div className="row-between">
+                <span className="muted text-sm">Offer percentage</span>
+                <strong>{pctOfOffer.toFixed(1)}%</strong>
+              </div>
+              <div className="row-between">
+                <span className="muted text-sm">Price per 1,000 units</span>
+                <strong className="mono">
+                  {(pricePerUnit * 1000).toFixed(6)} SOL
+                </strong>
               </div>
             </div>
 
@@ -753,7 +870,7 @@ export function ListingDetailPage({
                 void start();
               }}
             >
-              <IconCoins size={16} /> Investir agora
+              <IconCoins size={16} /> Invest now
             </button>
             {buyDisabledMessage && (
               <div
@@ -764,7 +881,7 @@ export function ListingDetailPage({
                   color: "var(--color-warning)",
                 }}
               >
-                <div className="text-sm fw-700">Compra indisponivel</div>
+                <div className="text-sm fw-700">Purchase unavailable</div>
                 <div className="text-sm mt-12">{buyDisabledMessage}</div>
               </div>
             )}
@@ -772,7 +889,7 @@ export function ListingDetailPage({
               className="text-xs muted mt-12"
               style={{ textAlign: "center" }}
             >
-              Você confirma na sua carteira antes de pagar.
+              You confirm in your wallet before paying.
             </div>
             {errorMessage && (
               <div
@@ -783,7 +900,7 @@ export function ListingDetailPage({
                   color: "var(--color-danger)",
                 }}
               >
-                <div className="text-sm fw-700">Falha na compra</div>
+                <div className="text-sm fw-700">Purchase failed</div>
                 <div className="text-sm mt-12">{errorMessage}</div>
               </div>
             )}
@@ -793,8 +910,8 @@ export function ListingDetailPage({
       <TxModal
         open={tx.open}
         step={tx.step}
-        title="Concluindo investimento"
-        successLabel="Ver portfólio"
+        title="Completing investment"
+        successLabel="View portfolio"
         onClose={
           tx.step === "done"
             ? finish

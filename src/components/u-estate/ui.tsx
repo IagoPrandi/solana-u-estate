@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { type ReactNode, useState } from "react";
-import { formatEth, formatUnits, formatUsd, truncate } from "./data";
+import { formatEth, formatUnits, truncate } from "./data";
+import { formatUsdFromFiatRates } from "./fiat-rates";
 import {
   IconArrowRight,
   IconBell,
@@ -35,6 +36,7 @@ import type {
   User,
 } from "./types";
 import { LanguageToggle } from "./i18n";
+import { useFiatRates } from "./use-fiat-rates";
 import { WalletChip, type WalletState } from "./wallet";
 
 const STATUS_MAP: Record<
@@ -42,7 +44,7 @@ const STATUS_MAP: Record<
   { label: string; cls: string }
 > = {
   Draft: { label: "Rascunho", cls: "badge" },
-  PendingMockVerification: { label: "Em análise", cls: "badge badge-warning" },
+  PendingMockVerification: { label: "Registrado", cls: "badge badge-warning" },
   MockVerified: { label: "Pronto para publicar", cls: "badge badge-success" },
   Tokenized: { label: "Pronto para publicar", cls: "badge badge-success" },
   ActiveSale: {
@@ -340,6 +342,7 @@ export function PropertyCard({
   p: Property;
   onClick: () => void;
 }) {
+  const fiatRates = useFiatRates();
   const soldPct =
     Math.round((p.soldFreeValueUnits / p.freeValueUnits) * 100) || 0;
   const availUnits = p.freeValueUnits - p.soldFreeValueUnits;
@@ -378,7 +381,9 @@ export function PropertyCard({
             <div className="prop-card-price-label">Avaliação</div>
             <div className="prop-card-price">
               {formatEth(p.marketValueEth)}{" "}
-              <span className="fiat">≈ {formatUsd(p.marketValueEth)}</span>
+              <span className="fiat">
+                ≈ {formatUsdFromFiatRates(p.marketValueEth, fiatRates)}
+              </span>
             </div>
           </div>
           <IconChevronRight size={18} />
@@ -397,6 +402,7 @@ export function OfferCard({
   property: Property;
   onClick: () => void;
 }) {
+  const fiatRates = useFiatRates();
   const pctOfProp = (listing.amount / property.totalValueUnits) * 100;
   const pricePerUnit = Number(listing.priceWei) / listing.amount;
   const minTicket = pricePerUnit * 1000;
@@ -424,7 +430,9 @@ export function OfferCard({
             <div className="offer-stat-value mono">
               {minTicket.toFixed(4)} SOL
             </div>
-            <div className="offer-stat-sub">≈ {formatUsd(minTicket)}</div>
+            <div className="offer-stat-sub">
+              ≈ {formatUsdFromFiatRates(minTicket, fiatRates)}
+            </div>
           </div>
           <div>
             <div className="offer-stat-label">Oferta total</div>

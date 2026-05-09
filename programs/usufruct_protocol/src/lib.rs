@@ -157,7 +157,8 @@ pub mod usufruct_protocol {
 
         let property = &mut ctx.accounts.property;
         require!(
-            property.status == PropertyStatus::MockVerified,
+            property.status == PropertyStatus::PendingMockVerification
+                || property.status == PropertyStatus::MockVerified,
             ErrorCode::PropertyNotMockVerified
         );
         require!(
@@ -410,12 +411,20 @@ pub mod usufruct_protocol {
             ctx.accounts.seller.key(),
             ErrorCode::BuyerCannotBeSeller
         );
+        require!(expected_amount > 0, ErrorCode::InvalidAmount);
         require!(
-            expected_amount == listing.amount,
+            expected_amount <= listing.amount,
             ErrorCode::UnexpectedAmount
         );
+        let expected_proportional_price = listing
+            .price_lamports
+            .checked_mul(expected_amount)
+            .ok_or(ErrorCode::MathOverflow)?
+            .checked_div(listing.amount)
+            .ok_or(ErrorCode::DivisionByZero)?;
+        require!(expected_proportional_price > 0, ErrorCode::PriceZero);
         require!(
-            expected_price_lamports == listing.price_lamports,
+            expected_price_lamports == expected_proportional_price,
             ErrorCode::UnexpectedPrice
         );
         require_keys_eq!(
@@ -448,7 +457,7 @@ pub mod usufruct_protocol {
             ErrorCode::InvalidEscrowTokenAccount
         );
         require!(
-            ctx.accounts.escrow_token_account.amount >= listing.amount,
+            ctx.accounts.escrow_token_account.amount >= expected_amount,
             ErrorCode::InsufficientFreeValueBalance
         );
         require_keys_eq!(
@@ -470,7 +479,7 @@ pub mod usufruct_protocol {
                     to: ctx.accounts.seller.to_account_info(),
                 },
             ),
-            listing.price_lamports,
+            expected_price_lamports,
         )?;
 
         let listing_key = listing.key();
@@ -493,32 +502,45 @@ pub mod usufruct_protocol {
                 },
                 signer_seeds,
             ),
-            listing.amount,
+            expected_amount,
             ctx.accounts.value_mint.decimals,
         )?;
 
-        token::close_account(CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            CloseAccount {
-                account: ctx.accounts.escrow_token_account.to_account_info(),
-                destination: ctx.accounts.seller.to_account_info(),
-                authority: ctx.accounts.escrow_authority.to_account_info(),
-            },
-            signer_seeds,
-        ))?;
-
-        listing.status = SaleStatus::Filled;
-        property.active_listings_count = property
-            .active_listings_count
-            .checked_sub(1)
+        let remaining_amount = listing
+            .amount
+            .checked_sub(expected_amount)
             .ok_or(ErrorCode::MathUnderflow)?;
+        let remaining_price_lamports = listing
+            .price_lamports
+            .checked_sub(expected_price_lamports)
+            .ok_or(ErrorCode::MathUnderflow)?;
+
+        if remaining_amount == 0 {
+            token::close_account(CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                CloseAccount {
+                    account: ctx.accounts.escrow_token_account.to_account_info(),
+                    destination: ctx.accounts.seller.to_account_info(),
+                    authority: ctx.accounts.escrow_authority.to_account_info(),
+                },
+                signer_seeds,
+            ))?;
+
+            listing.status = SaleStatus::Filled;
+            property.active_listings_count = property
+                .active_listings_count
+                .checked_sub(1)
+                .ok_or(ErrorCode::MathUnderflow)?;
+        }
+        listing.amount = remaining_amount;
+        listing.price_lamports = remaining_price_lamports;
         property.active_escrowed_amount = property
             .active_escrowed_amount
-            .checked_sub(listing.amount)
+            .checked_sub(expected_amount)
             .ok_or(ErrorCode::MathUnderflow)?;
         property.total_free_value_sold = property
             .total_free_value_sold
-            .checked_add(listing.amount)
+            .checked_add(expected_amount)
             .ok_or(ErrorCode::MathOverflow)?;
 
         let old_status = property.status;
@@ -537,8 +559,8 @@ pub mod usufruct_protocol {
             property_id: property.property_id,
             buyer: ctx.accounts.buyer.key(),
             seller: ctx.accounts.seller.key(),
-            amount: listing.amount,
-            price_lamports: listing.price_lamports,
+            amount: expected_amount,
+            price_lamports: expected_price_lamports,
         });
         emit!(PropertyStatusUpdated {
             property: property.key(),
@@ -1126,7 +1148,7 @@ pub enum ErrorCode {
     PropertyNotFound,
     #[msg("Property is not pending mock verification")]
     PropertyNotPendingMockVerification,
-    #[msg("Property is not mock verified")]
+    #[msg("Property is not ready for tokenization")]
     PropertyNotMockVerified,
     #[msg("Property already tokenized")]
     PropertyAlreadyTokenized,

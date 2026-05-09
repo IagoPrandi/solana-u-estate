@@ -1,6 +1,7 @@
 "use client";
 
-import { formatUnits, formatUsd, truncate } from "./data";
+import { formatUnits, truncate } from "./data";
+import { formatUsdFromFiatRates } from "./fiat-rates";
 import type { WalletHolding } from "./holdings";
 import {
   IconArrowRight,
@@ -16,6 +17,7 @@ import {
   PageHeader,
 } from "./ui";
 import type { Listing, Navigate, Property } from "./types";
+import { useFiatRates } from "./use-fiat-rates";
 
 function assetTicker(property: Property) {
   const suffix = property.propertyId !== "0" ? property.propertyId : property.id.slice(0, 4);
@@ -54,9 +56,6 @@ function ChartCard({
     })
     .join(" ");
   const area = `20,240 ${points} 580,240`;
-  const current = series.at(-1) ?? currentvalueEth;
-  const previous = series.at(-2) ?? current;
-  const up = current >= previous;
 
   return (
     <div
@@ -70,14 +69,14 @@ function ChartCard({
       <div className="row-between mb-16">
         <div>
           <div className="text-xs" style={{ opacity: 0.55, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
-            Gráfico de mercado
+            Referência de valor
           </div>
           <div className="fw-800 text-xl mt-12 mono">{assetTicker(property)}/SOL</div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="fw-800 text-xl mono">{currentvalueEth.toFixed(6)} SOL</div>
-          <div className="text-xs fw-700" style={{ color: up ? "var(--color-success)" : "var(--color-danger)" }}>
-            {up ? "+" : ""}{(((current - previous) / Math.max(previous, 0.000001)) * 100).toFixed(2)}% último tick
+          <div className="text-xs fw-700" style={{ color: "rgba(255,255,255,0.72)" }}>
+            Based on registered property valuation
           </div>
         </div>
       </div>
@@ -114,15 +113,15 @@ function ChartCard({
       </svg>
       <div className="grid-3 mt-16">
         <div>
-          <div className="muted text-xs">Volume 24h</div>
-          <div className="fw-800 mono mt-12">{(holding.costEth * 0.36).toFixed(5)} SOL</div>
+          <div className="muted text-xs">Custo de entrada</div>
+          <div className="fw-800 mono mt-12">{holding.costEth.toFixed(6)} SOL</div>
         </div>
         <div>
-          <div className="muted text-xs">Profundidade do pool</div>
-          <div className="fw-800 mono mt-12">{(Number(property.marketValueEth) * 0.08).toFixed(4)} SOL</div>
+          <div className="muted text-xs">Unidades detidas</div>
+          <div className="fw-800 mono mt-12">{formatUnits(holding.units)}</div>
         </div>
         <div>
-          <div className="muted text-xs">Valor do oráculo</div>
+          <div className="muted text-xs">Avaliação cadastrada</div>
           <div className="fw-800 mono mt-12">{Number(property.marketValueEth).toFixed(4)} SOL</div>
         </div>
       </div>
@@ -141,6 +140,7 @@ export function InvestmentDetailPage({
   listings: Listing[];
   navigate: Navigate;
 }) {
+  const fiatRates = useFiatRates();
   if (!property || !holding) {
     return (
       <div className="page">
@@ -196,7 +196,9 @@ export function InvestmentDetailPage({
             Valor atual
           </div>
           <div className="fw-800 text-2xl mono mt-12">{currentvalueEth.toFixed(6)} SOL</div>
-          <div className="muted text-sm">≈ {formatUsd(currentvalueEth)}</div>
+          <div className="muted text-sm">
+            ≈ {formatUsdFromFiatRates(currentvalueEth, fiatRates)}
+          </div>
         </div>
         <div className="card card-pad">
           <div className="muted text-xs" style={{ textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
@@ -300,21 +302,17 @@ export function InvestmentDetailPage({
                 <strong>Apenas venda primária</strong>
               </div>
             </div>
-            <div className="mt-24" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {["Bid 0.00000098", "Ask 0.00000102", "Bid 0.00000095", "Ask 0.00000105"].map((row, i) => (
-                <div
-                  key={row}
-                  className="text-xs mono"
-                  style={{
-                    padding: "8px 10px",
-                    borderRadius: 6,
-                    background: i % 2 === 0 ? "rgba(15,163,127,0.12)" : "rgba(241,139,43,0.14)",
-                    color: i % 2 === 0 ? "var(--color-success)" : "var(--color-orange)",
-                  }}
-                >
-                  {row}
-                </div>
-              ))}
+            <div
+              className="card-pad mt-24"
+              style={{
+                background: "var(--color-surface-soft)",
+                borderRadius: "var(--radius-md)",
+              }}
+            >
+              <div className="text-sm muted">
+                Secondary trading is not implemented in Phase 0. These values
+                only reflect active primary-sale liquidity.
+              </div>
             </div>
           </div>
 

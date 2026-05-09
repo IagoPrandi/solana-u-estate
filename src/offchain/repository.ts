@@ -270,10 +270,6 @@ export async function savePropertyTokenization(
     throw new Error("On-chain property id does not match the saved draft.");
   }
 
-  if (property.onchainRegistration.status === "PendingMockVerification") {
-    throw new Error("Property draft must be mock-verified before tokenization.");
-  }
-
   if (property.onchainRegistration.status === "Tokenized") {
     throw new Error("Property draft is already tokenized.");
   }

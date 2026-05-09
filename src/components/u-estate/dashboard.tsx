@@ -1,8 +1,10 @@
 "use client";
 
-import { formatUnits, formatUsd } from "./data";
+import { formatUnits } from "./data";
+import { formatUsdFromFiatRates } from "./fiat-rates";
 import { getWalletHoldings } from "./holdings";
 import { listingIdentity } from "./listing-identity";
+import { useFiatRates } from "./use-fiat-rates";
 import {
   IconArrowRight,
   IconCheck,
@@ -37,12 +39,16 @@ function OwnerDashboard({
   transactions: Transaction[];
   navigate: Navigate;
 }) {
+  const fiatRates = useFiatRates();
   const totalProps = properties.length;
   const inReview = properties.filter(
     (p) => p.status === "PendingMockVerification",
   ).length;
   const readyToPublish = properties.filter(
-    (p) => p.status === "MockVerified" || p.status === "Tokenized",
+    (p) =>
+      p.status === "PendingMockVerification" ||
+      p.status === "MockVerified" ||
+      p.status === "Tokenized",
   ).length;
   const onSale = properties.filter((p) => p.status === "ActiveSale").length;
   const totalCapturedSOL = properties.reduce(
@@ -55,17 +61,23 @@ function OwnerDashboard({
 
   const recommended =
     properties.find(
-      (p) => p.status === "MockVerified" || p.status === "Tokenized",
+      (p) =>
+        p.status === "PendingMockVerification" ||
+        p.status === "MockVerified" ||
+        p.status === "Tokenized",
     ) ??
     properties.find((p) => p.status === "PendingMockVerification") ??
     properties[0];
 
   const recommendedAction = (() => {
     if (!recommended) return null;
-    if (recommended.status === "MockVerified") {
+    if (
+      recommended.status === "PendingMockVerification" ||
+      recommended.status === "MockVerified"
+    ) {
       return {
         title: `Tokenize ${recommended.title}`,
-        body: "Seus documentos foram aprovados. Tokenize o imóvel para gerar o direito de uso e o direito sobre o valor antes de publicar uma oferta.",
+        body: "Tokenize o imóvel para gerar o direito de uso e o direito sobre o valor. A validação por terceiro é opcional e não bloqueia esta etapa.",
         cta: "Tokenizar imóvel",
         go: () => navigate("property", { id: recommended.id }),
         muted: false,
@@ -81,15 +93,6 @@ function OwnerDashboard({
         cta: "Disponibilizar agora",
         go: () => navigate("property-publish", { id: recommended.id }),
         muted: false,
-      };
-    }
-    if (recommended.status === "PendingMockVerification") {
-      return {
-        title: `${recommended.title} está em análise`,
-        body: "Nossa equipe está validando os documentos. Acompanhe o status pela página do imóvel.",
-        cta: "Ver detalhes",
-        go: () => navigate("property", { id: recommended.id }),
-        muted: true,
       };
     }
     return null;
@@ -137,7 +140,7 @@ function OwnerDashboard({
           <div className="stat-label">Já captado</div>
           <div className="stat-value mono">{totalCapturedSOL.toFixed(3)}</div>
           <div className="stat-delta" style={{ color: "var(--color-muted)" }}>
-            SOL · ≈ {formatUsd(totalCapturedSOL)}
+            SOL · ≈ {formatUsdFromFiatRates(totalCapturedSOL, fiatRates)}
           </div>
         </div>
       </div>
@@ -363,6 +366,7 @@ function BuyerDashboard({
   navigate: Navigate;
   user: User;
 }) {
+  const fiatRates = useFiatRates();
   void transactions;
   const activeListings = listings.filter((l) => l.status === "Active");
   const enriched = activeListings
@@ -417,7 +421,9 @@ function BuyerDashboard({
           <div className="fw-800 text-2xl mono mt-12">
             {totalInvested.toFixed(3)} SOL
           </div>
-          <div className="muted text-sm">≈ {formatUsd(totalInvested)}</div>
+          <div className="muted text-sm">
+            ≈ {formatUsdFromFiatRates(totalInvested, fiatRates)}
+          </div>
           <div
             className="text-xs mt-12"
             style={{ color: "var(--color-muted)" }}
@@ -439,7 +445,9 @@ function BuyerDashboard({
           <div className="fw-800 text-2xl mono mt-12">
             {totalValue.toFixed(3)} SOL
           </div>
-          <div className="muted text-sm">≈ {formatUsd(totalValue)}</div>
+          <div className="muted text-sm">
+            ≈ {formatUsdFromFiatRates(totalValue, fiatRates)}
+          </div>
           <div
             className="text-xs mt-12"
             style={{

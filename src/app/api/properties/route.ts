@@ -87,7 +87,6 @@ export async function PATCH(request: Request) {
             message === "Property draft is already mock-verified." ||
             message === "Property draft is already tokenized." ||
             message === "Property draft is not registered on-chain." ||
-            message === "Property draft must be mock-verified before tokenization." ||
             message === "Property draft must be tokenized before primary sale." ||
             message === "Primary sale listing already saved locally." ||
             message === "Primary sale listing is not saved locally." ||

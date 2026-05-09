@@ -122,6 +122,10 @@ const exactTranslations: Record<string, string> = {
   "Revise as informações. Você pode voltar e ajustar a qualquer momento.": "Review the information. You can go back and adjust it at any time.",
   "Avaliação": "Valuation",
   "Captação prevista": "Expected raise",
+  "Valor reservado": "Reserved value",
+  "Captação possível": "Possible raise",
+  "cotação OKX indisponível": "OKX quote unavailable",
+  "cotação indisponível": "quote unavailable",
   "se você ofertar 100% da parte disponível": "if you list 100% of the available share",
   "Reservado pra você": "Reserved for you",
   "Disponível para investidores": "Available to investors",
@@ -131,6 +135,7 @@ const exactTranslations: Record<string, string> = {
   "Cancelar": "Cancel",
   "Voltar": "Back",
   "Continuar": "Continue",
+  "Registrar imóvel": "Register property",
   "Enviar para análise": "Submit for review",
   "Pré-visualização": "Preview",
   "Sem título": "Untitled",
@@ -318,6 +323,7 @@ const exactTranslations: Record<string, string> = {
   "Validando documentos com a equipe…": "Validating documents with the team...",
   "Documentos validados.": "Documents validated.",
   "Publicar": "Publish",
+  "Jornada": "Journey",
   "Oferta no ar.": "Offer live.",
   "Oferta concluída.": "Offer completed.",
   "Defina quanto quer captar.": "Define how much you want to raise.",
@@ -331,6 +337,8 @@ const exactTranslations: Record<string, string> = {
   "incluindo direito de morar": "including the right to live there",
   "Pode ofertar até": "Can offer up to",
   "Ofertas publicadas": "Published offers",
+  "Ativa": "Active",
+  "Cancelada": "Cancelled",
   "Cancelar oferta": "Cancel offer",
   "Visíveis apenas para você e nossa equipe de análise.": "Visible only to you and our review team.",
   "Documento do proprietário": "Owner document",
@@ -455,6 +463,9 @@ const exactTranslations: Record<string, string> = {
   "% (máximo disponível)": "% (maximum available)",
   "Investimento mínimo por pessoa": "Minimum investment per person",
   "1 mês": "1 month",
+  "4 meses": "4 months",
+  "1 ano": "1 year",
+  "2 anos": "2 years",
   "Operações registradas e auditáveis": "Recorded and auditable operations",
   "Como investidores verão": "How investors will see it",
   "Duração": "Duration",
@@ -469,7 +480,7 @@ const exactTranslations: Record<string, string> = {
   "Obrigatória. Seja claro para que o proprietário possa corrigir.": "Required. Be clear so the owner can correct it.",
   "Este imóvel já foi analisado.": "This property has already been reviewed.",
   "Análise de imóveis": "Property review",
-  "Revise a documentação de cada imóvel e aprove a análise para liberar a tokenização.": "Review each property's documentation and approve the review to release tokenization.",
+  "Review property documents for operational records. Tokenization does not require third-party approval.": "Review property documents for operational records. Tokenization does not require third-party approval.",
   "Analisados nesta sessão": "Reviewed in this session",
   "Carregando imóveis…": "Loading properties...",
   "Nenhum imóvel aguardando análise.": "No properties waiting for review.",
@@ -533,7 +544,12 @@ const phraseTranslations: Array<[RegExp, string]> = [
   [/^(.+) est[aá] em an[aá]lise$/g, "$1 is in review"],
   [/Seu im[oó]vel j[aá] est[aá] tokenizado\. Voc[eê] pode captar at[eé] ([0-9.,]+ SOL) liberando uma parte do im[oó]vel\./g, "Your property is already tokenized. You can raise up to $1 by releasing part of the property."],
   [/([0-9.,]+)% captado/g, "$1% raised"],
+  [/([0-9.,]+)% do im[oó]vel/g, "$1% of the property"],
   [/([0-9.,]+) unidades/g, "$1 units"],
+  [/Oferta de ([0-9.,]+)% · ([0-9.,]+) units/g, "$1% offer · $2 units"],
+  [/Oferta de ([0-9.,]+)% · ([0-9.,]+) unidades/g, "$1% offer · $2 units"],
+  [/Publicada em ([0-9/]+)/g, "Listed on $1"],
+  [/O im[oó]vel j[aá] est[aá] tokenizado\. Em poucos cliques voc[eê] publica uma oferta para investidores\./g, "The property is already tokenized. In a few clicks you publish an offer for investors."],
   [/Im[oó]veis verificados, a partir de\s*0,001 SOL\./g, "Verified properties, starting at 0.001 SOL."],
   [/Compre uma participa[cç][aã]o no valor econ[oô]mico de im[oó]veis reais\./g, "Buy an economic stake in real properties."],
   [/Voc[eê] ganha conforme o im[oó]vel valoriza, sem precisar comprar a casa inteira\./g, "You benefit as the property appreciates, without buying the whole home."],
@@ -625,11 +641,17 @@ function translateTextNode(node: Text, locale: Locale) {
   const parent = node.parentElement;
   if (!parent || ignoredParents.has(parent.tagName)) return;
   if (parent.closest("[data-i18n-skip='true']")) return;
+  const current = node.nodeValue ?? "";
   if (!originalTextByNode.has(node)) {
-    originalTextByNode.set(node, node.nodeValue ?? "");
+    originalTextByNode.set(node, current);
   }
-  const original = originalTextByNode.get(node) ?? "";
-  const next = translateUiText(original, locale);
+  let original = originalTextByNode.get(node) ?? "";
+  let next = translateUiText(original, locale);
+  if (current !== original && current !== next) {
+    original = current;
+    originalTextByNode.set(node, original);
+    next = translateUiText(original, locale);
+  }
   if (node.nodeValue !== next) node.nodeValue = next;
 }
 
