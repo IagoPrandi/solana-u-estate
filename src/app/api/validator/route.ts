@@ -23,6 +23,8 @@ export async function POST(request: Request) {
       localPropertyId?: string;
       action?: "approve" | "reject";
       reason?: string;
+      propertyId?: string;
+      txHash?: string;
     };
     if (!body.localPropertyId) {
       return NextResponse.json(
@@ -45,7 +47,23 @@ export async function POST(request: Request) {
       );
       return NextResponse.json({ record });
     }
-    const record = await saveValidatorApproval(body.localPropertyId);
+    if (!body.propertyId) {
+      return NextResponse.json(
+        { error: "propertyId is required for approval." },
+        { status: 400 },
+      );
+    }
+    if (!body.txHash) {
+      return NextResponse.json(
+        { error: "txHash is required for approval." },
+        { status: 400 },
+      );
+    }
+    const record = await saveValidatorApproval(
+      body.localPropertyId,
+      body.propertyId,
+      body.txHash,
+    );
     return NextResponse.json({ record });
   } catch (error) {
     const message =

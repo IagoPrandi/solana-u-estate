@@ -590,6 +590,8 @@ export async function savePropertyPrimarySaleCancellation(
 
 export async function saveValidatorApproval(
   localPropertyId: string,
+  propertyId: string,
+  txHash: string,
 ): Promise<SavedPropertyRecord> {
   const db = await getDb();
   const property = db.data.properties.find(
@@ -597,32 +599,31 @@ export async function saveValidatorApproval(
   );
   if (!property) throw new Error("Property draft not found.");
 
-  const dummyHash = DEMO_SIGNATURE_1;
   const now = new Date().toISOString();
 
   if (property.onchainRegistration) {
+    if (property.onchainRegistration.propertyId !== propertyId) {
+      throw new Error("On-chain property id does not match the saved draft.");
+    }
     if (property.onchainRegistration.status !== "PendingMockVerification") {
       throw new Error("Property is not pending verification.");
     }
     property.onchainRegistration.status = "MockVerified";
-    property.onchainRegistration.verificationTxHash = dummyHash;
+    property.onchainRegistration.verificationTxHash = txHash;
     property.onchainRegistration.verifiedAt = now;
     delete property.onchainRegistration.rejection;
   } else {
-    // Create a minimal mock registration + verification for draft-only properties
-    const seed = localPropertyId.replace(/-/g, "");
-    const mockPropertyId = String(
-      (parseInt(seed.slice(0, 8), 16) % 9000) + 1000,
-    );
-    property.onchainRegistration = {
-      propertyId: mockPropertyId,
-      txHash: dummyHash,
-      status: "MockVerified",
-      registeredAt: now,
-      verifiedAt: now,
-      verificationTxHash: dummyHash,
-    };
+    throw new Error("Property draft is not registered on-chain.");
   }
+
+  db.data.solanaTransactions.unshift(
+    solanaTransaction({
+      signature: txHash,
+      kind: "mockVerification",
+      localPropertyId,
+      propertyId,
+    }),
+  );
 
   await db.write();
   return property;

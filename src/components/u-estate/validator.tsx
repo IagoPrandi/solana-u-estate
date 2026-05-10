@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import type { SavedPropertyRecord } from "@/offchain/schemas";
+import { useUEstateActions } from "./actions";
 import { storedSolAmountToNumber } from "./amounts";
 import {
   formatUsdFromFiatRates,
@@ -19,6 +20,7 @@ import {
   IconX,
 } from "./icons";
 import { LanguageToggle } from "./i18n";
+import { WalletChip, useWallet } from "./wallet";
 import { useFiatRates } from "./use-fiat-rates";
 
 const ACCESS_CODE = "u-estate-ops";
@@ -252,7 +254,7 @@ function PropertyPanel({
   onClose,
 }: {
   record: SavedPropertyRecord;
-  onApprove: (id: string) => Promise<void>;
+  onApprove: (id: string, propertyId: string) => Promise<void>;
   onReject: (id: string, reason: string) => Promise<void>;
   onClose: () => void;
 }) {
@@ -272,7 +274,11 @@ function PropertyPanel({
     setError("");
     setBusy("approve");
     try {
-      await onApprove(record.localPropertyId);
+      const propertyId = record.onchainRegistration?.propertyId;
+      if (!propertyId) {
+        throw new Error("Property must be registered on-chain before approval.");
+      }
+      await onApprove(record.localPropertyId, propertyId);
       setDone("approved");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao aprovar.");
@@ -591,6 +597,8 @@ function ValidatorDashboard({
   session: Session;
   onLogout: () => void;
 }) {
+  const wallet = useWallet();
+  const actions = useUEstateActions(wallet);
   const fiatRates = useFiatRates();
   const [properties, setProperties] = useState<SavedPropertyRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -617,11 +625,20 @@ function ValidatorDashboard({
     return () => window.clearTimeout(timer);
   }, []);
 
-  const handleApprove = async (localPropertyId: string) => {
+  const handleApprove = async (localPropertyId: string, propertyId: string) => {
+    if (!actions.ready) {
+      throw new Error("Connect a Solana Devnet wallet with program id configured before approving.");
+    }
+    const record = await actions.mockVerify(localPropertyId, propertyId, () => {});
     const res = await fetch("/api/validator", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ localPropertyId, action: "approve" }),
+      body: JSON.stringify({
+        localPropertyId,
+        action: "approve",
+        propertyId,
+        txHash: record.onchainRegistration?.verificationTxHash,
+      }),
     });
     if (!res.ok) {
       const err = (await res.json()) as { error: string };
@@ -689,6 +706,7 @@ function ValidatorDashboard({
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <LanguageToggle compact />
+          <WalletChip wallet={wallet} />
           <div
             style={{
               display: "flex",
@@ -730,6 +748,9 @@ function ValidatorDashboard({
           </h1>
           <div className="muted text-sm" style={{ marginTop: 6 }}>
             Review property documents before owners can tokenize registered properties.
+          </div>
+          <div className="muted text-xs" style={{ marginTop: 8 }}>
+            On-chain approval runs only from validator panel using connected wallet.
           </div>
         </div>
 

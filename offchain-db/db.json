@@ -1,6 +1,202 @@
 {
   "properties": [
     {
+      "localPropertyId": "74973320-ee83-4b65-abb4-d1c61c4b9daa",
+      "ownerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+      "marketValueWei": "12000000000",
+      "linkedValueBps": 2000,
+      "address": {
+        "street": "Wall",
+        "number": "12",
+        "city": "Oz",
+        "state": "SP",
+        "country": "Brasil",
+        "postalCode": "1201-12"
+      },
+      "location": {
+        "lat": "-23.000000",
+        "lng": "-34.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "mock_matricula_imovel.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-10T22:42:52.352Z"
+        },
+        {
+          "type": "mock_owner_id",
+          "filename": "mock_laudo_avaliacao_simplificado.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-10T22:42:52.352Z"
+        },
+        {
+          "type": "mock_tax_record",
+          "filename": "mock_comprovante_localizacao.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-10T22:42:52.352Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "74973320-ee83-4b65-abb4-d1c61c4b9daa",
+        "ownerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+        "marketValueWei": "12000000000",
+        "linkedValueBps": 2000,
+        "address": {
+          "street": "Wall",
+          "number": "12",
+          "city": "Oz",
+          "state": "SP",
+          "country": "Brasil",
+          "postalCode": "1201-12"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "74973320-ee83-4b65-abb4-d1c61c4b9daa",
+        "lat": "-23.000000",
+        "lng": "-34.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "74973320-ee83-4b65-abb4-d1c61c4b9daa",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "mock_matricula_imovel.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_owner_id",
+            "filename": "mock_laudo_avaliacao_simplificado.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_tax_record",
+            "filename": "mock_comprovante_localizacao.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0x6c0f3bd0f942f4ad01f02cdb2186086c784e5af4c8e620267591bd5dbfddc2f5",
+      "locationHash": "0x4f9629006f94628e931cca81e1f7d5858371352a2d402fed09c1f585707d0483",
+      "documentsHash": "0x5e46e61430cb2ae7199afb0902731596dbf3751040a18c4be144777ee34da990",
+      "createdAt": "2026-05-10T22:42:52.352Z",
+      "onchainRegistration": {
+        "propertyId": "14",
+        "txHash": "3DER582GecNHdpaX92Fwrzfa4ENhoUWvNWthSZHejk2jcEj48K2ggadbGFw32oQrBQAtNqGZD3u6vqtZBdGvpNv7",
+        "status": "Tokenized",
+        "registeredAt": "2026-05-10T22:43:03.680Z",
+        "verificationTxHash": "q2uVUHS2WrBTdt5qAYt9yXrc9FbCtGeNf8KbqRyaBqBjt7ZxpG4w6MJzZcAzPfitDHdZ6m4TmB1iDc9SVGxWcdX",
+        "verifiedAt": "2026-05-10T22:43:28.703Z",
+        "tokenizationTxHash": "26qyxeRkq1GDDVXW6WrEBvanshjawXjNQuGwVBCxt5xPJGsFzk694egjyttLPJ5D6La2NvK8RHDq25JALXDfB8xZ",
+        "tokenizedAt": "2026-05-10T22:43:59.657Z",
+        "valueTokenAddress": "Buo63gFaEeP7YRtKKBe5YS8Nz1eDCbtqAtbRhtw4hMoH",
+        "usufructTokenId": "14",
+        "linkedValueUnits": "200000",
+        "freeValueUnits": "800000"
+      }
+    },
+    {
+      "localPropertyId": "6b77385c-bc68-4e5d-9452-2c88282c721f",
+      "ownerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+      "marketValueWei": "1200000000000",
+      "linkedValueBps": 2000,
+      "address": {
+        "street": "Wall",
+        "number": "12",
+        "city": "Oz",
+        "state": "SP",
+        "country": "Brasil",
+        "postalCode": "1201-12"
+      },
+      "location": {
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documents": [
+        {
+          "type": "mock_deed",
+          "filename": "mock_iptu_cadastro_municipal.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-10T20:33:17.895Z"
+        },
+        {
+          "type": "mock_owner_id",
+          "filename": "mock_laudo_avaliacao_simplificado.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-10T20:33:17.895Z"
+        },
+        {
+          "type": "mock_tax_record",
+          "filename": "mock_matricula_imovel.pdf",
+          "mock": true,
+          "uploadedAt": "2026-05-10T20:33:17.895Z"
+        }
+      ],
+      "metadataForHash": {
+        "version": "1.0",
+        "propertyLocalId": "6b77385c-bc68-4e5d-9452-2c88282c721f",
+        "ownerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
+        "marketValueWei": "1200000000000",
+        "linkedValueBps": 2000,
+        "address": {
+          "street": "Wall",
+          "number": "12",
+          "city": "Oz",
+          "state": "SP",
+          "country": "Brasil",
+          "postalCode": "1201-12"
+        }
+      },
+      "locationForHash": {
+        "version": "1.0",
+        "propertyLocalId": "6b77385c-bc68-4e5d-9452-2c88282c721f",
+        "lat": "-23.000000",
+        "lng": "-46.000000"
+      },
+      "documentsForHash": {
+        "version": "1.0",
+        "propertyLocalId": "6b77385c-bc68-4e5d-9452-2c88282c721f",
+        "documents": [
+          {
+            "type": "mock_deed",
+            "filename": "mock_iptu_cadastro_municipal.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_owner_id",
+            "filename": "mock_laudo_avaliacao_simplificado.pdf",
+            "mock": true
+          },
+          {
+            "type": "mock_tax_record",
+            "filename": "mock_matricula_imovel.pdf",
+            "mock": true
+          }
+        ]
+      },
+      "metadataHash": "0x92c04c91b93c36df049e7f0321c10bc4f67577072d2e7a278ab4ecce4ae25ab3",
+      "locationHash": "0xdfcf6d484da2bed13284d4d13a26bc0e19f66dc2ab709d8df164d3b5e3b3183b",
+      "documentsHash": "0xe3dbd74573f5acfc74a1f01228a24a67bad3bb6db9362b2c414b9b4a4f52fb55",
+      "createdAt": "2026-05-10T20:33:17.895Z",
+      "onchainRegistration": {
+        "propertyId": "13",
+        "txHash": "uYitHdKdkj9mk1R5rMAQ8hw33hKmbjGAJGAxdkMRhEPpCLNgTr5HjiQ7ZaV1B6xvkZJRz7VdJYhUBmPiXxT63Xe",
+        "status": "Tokenized",
+        "registeredAt": "2026-05-10T20:33:30.793Z",
+        "verificationTxHash": "1111111111111111111111111111111111111111111111111111111111111111",
+        "verifiedAt": "2026-05-10T20:33:53.840Z",
+        "tokenizationTxHash": "4i9XDfARnBKww8HgS3KSKhv8cGZ8Gg46rXLKg5h2swrqqwdpFb4mxrCf7nj51QL1DjCNVnVbPtum8oVeYU2LDtXg",
+        "tokenizedAt": "2026-05-10T22:07:46.847Z",
+        "valueTokenAddress": "2cNdmP4SYgSAjHAmT5VS4hkBvjFfsJXbmhoCqKaNBopN",
+        "usufructTokenId": "13",
+        "linkedValueUnits": "200000",
+        "freeValueUnits": "800000"
+      }
+    },
+    {
       "localPropertyId": "814cca70-2513-49ba-864f-b5cbb5d398f1",
       "ownerWallet": "7E3DMct5umGMA4mSeAr1UcJUFSd5kd444rK39G8GTC9p",
       "marketValueWei": "12000000000",
@@ -726,21 +922,61 @@
     "provider": "okx",
     "base": "SOL",
     "routes": {
-      "usd": "SOL-USDC"
+      "usd": "SOL-USDC",
+      "brl": "SOL-USDC * USDC-BRL"
     },
     "rates": {
-      "usd": "93.39"
+      "usd": "95.89",
+      "brl": "471.58702"
     },
-    "unavailable": [
-      "brl"
-    ],
+    "unavailable": [],
     "optionalRates": {
       "eur": null,
       "jpy": null
     },
-    "updatedAt": "2026-05-09T20:07:55.138Z"
+    "updatedAt": "2026-05-10T22:43:04.493Z"
   },
   "solanaTransactions": [
+    {
+      "signature": "26qyxeRkq1GDDVXW6WrEBvanshjawXjNQuGwVBCxt5xPJGsFzk694egjyttLPJ5D6La2NvK8RHDq25JALXDfB8xZ",
+      "kind": "tokenization",
+      "localPropertyId": "74973320-ee83-4b65-abb4-d1c61c4b9daa",
+      "propertyId": "14",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-10T22:43:59.658Z"
+    },
+    {
+      "signature": "q2uVUHS2WrBTdt5qAYt9yXrc9FbCtGeNf8KbqRyaBqBjt7ZxpG4w6MJzZcAzPfitDHdZ6m4TmB1iDc9SVGxWcdX",
+      "kind": "mockVerification",
+      "localPropertyId": "74973320-ee83-4b65-abb4-d1c61c4b9daa",
+      "propertyId": "14",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-10T22:43:28.703Z"
+    },
+    {
+      "signature": "3DER582GecNHdpaX92Fwrzfa4ENhoUWvNWthSZHejk2jcEj48K2ggadbGFw32oQrBQAtNqGZD3u6vqtZBdGvpNv7",
+      "kind": "registration",
+      "localPropertyId": "74973320-ee83-4b65-abb4-d1c61c4b9daa",
+      "propertyId": "14",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-10T22:43:03.680Z"
+    },
+    {
+      "signature": "4i9XDfARnBKww8HgS3KSKhv8cGZ8Gg46rXLKg5h2swrqqwdpFb4mxrCf7nj51QL1DjCNVnVbPtum8oVeYU2LDtXg",
+      "kind": "tokenization",
+      "localPropertyId": "6b77385c-bc68-4e5d-9452-2c88282c721f",
+      "propertyId": "13",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-10T22:07:46.847Z"
+    },
+    {
+      "signature": "uYitHdKdkj9mk1R5rMAQ8hw33hKmbjGAJGAxdkMRhEPpCLNgTr5HjiQ7ZaV1B6xvkZJRz7VdJYhUBmPiXxT63Xe",
+      "kind": "registration",
+      "localPropertyId": "6b77385c-bc68-4e5d-9452-2c88282c721f",
+      "propertyId": "13",
+      "syncStatus": "confirmed",
+      "createdAt": "2026-05-10T20:33:30.793Z"
+    },
     {
       "signature": "2gvfSD8AdbwvbzUzhdaGXdmmGvz9gBwp4SNRBkm9m4Bb2gspf4EKR6r5wuRx1w4FjQzvUQgFDaQiL96EAsU9Qs9v",
       "kind": "registration",

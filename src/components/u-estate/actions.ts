@@ -96,6 +96,11 @@ export type UEstateActions = {
   ) => Promise<SavedPropertyRecord>;
 };
 
+export type ValidatorApprovalPayload = {
+  propertyId: string;
+  txHash: string;
+};
+
 export function useUEstateActions(wallet: WalletState): UEstateActions {
   const { connection } = useConnection();
   const solanaWallet = useSolanaWallet();
@@ -394,6 +399,25 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
     return record;
   };
 
+  const mockVerify = async (
+    localPropertyId: string,
+    onchainPropertyId: string,
+    onStep: StepCb,
+  ) => {
+    const publicKey = requireWallet();
+    const propertyId = BigInt(onchainPropertyId);
+    const signature = await sendInstructions(
+      [mockVerifyPropertyIx({ propertyId, verifier: publicKey })],
+      onStep,
+    );
+    return patchOnchainSync({
+      kind: "mockVerification",
+      localPropertyId,
+      propertyId: onchainPropertyId,
+      txHash: signature,
+    });
+  };
+
   return {
     ready: Boolean(wallet.canTransact),
     primaryValueSaleAddress: undefined,
@@ -421,23 +445,11 @@ export function useUEstateActions(wallet: WalletState): UEstateActions {
         txHash: signature,
       });
     },
-    mockVerify: async (localPropertyId, onchainPropertyId, onStep) => {
-      const publicKey = requireWallet();
-      const propertyId = BigInt(onchainPropertyId);
-      const signature = await sendInstructions(
-        [mockVerifyPropertyIx({ propertyId, verifier: publicKey })],
-        onStep,
-      );
-      return patchOnchainSync({
-        kind: "mockVerification",
-        localPropertyId,
-        propertyId: onchainPropertyId,
-        txHash: signature,
-      });
-    },
+    mockVerify,
     tokenize: async (localPropertyId, onchainPropertyId, onStep) => {
       const publicKey = requireWallet();
       const propertyId = BigInt(onchainPropertyId);
+
       await assertCanTokenizeProperty(propertyId, publicKey);
       const valueMint = Keypair.generate();
       const { instruction } = tokenizePropertyIx({
